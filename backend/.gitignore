@@ -1,1 +1,26 @@
+# Python bytecode and cache
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+env/
+
+# Flask-specific files
+instance/
+*.log
+*.sqlite3
 .env
+
+# Distribution / packaging
+*.egg-info/
+dist/
+build/
+*.whl
+
+# IDE-specific files
+.idea/
+.vscode/
+
+# OS-specific files (Windows and macOS)
+.DS_Store
+Thumbs.db
