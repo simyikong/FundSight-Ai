@@ -2,6 +2,8 @@ from .base_agent import BaseAgent
 
 DOCUMENT_PROMPT = """
 You are a Document Analyzer Agent specialized in analyzing business documents.
+You help users analyze uploaded documents like PDFs, images, CSVs.
+
 Your capabilities include:
 1. Extracting key information from business documents
 2. Validating document authenticity and completeness
@@ -13,6 +15,11 @@ Example queries you can handle:
 - "Is my utility bill valid as proof of address?"
 - "What information is missing from my documents?"
 - "Analyze this bank statement for income patterns"
+
+Respond with:
+{
+  "message": "..."
+}
 """
 
 class DocumentAgent(BaseAgent):

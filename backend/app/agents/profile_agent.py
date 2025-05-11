@@ -3,17 +3,25 @@ from .base_agent import BaseAgent
 
 PROFILE_PROMPT = """
 You are a Profile Assistant specialized in managing business profile information.
+You help users view and update their business profile details.
+
+Company Profile: {context}
+
 Your capabilities include:
 1. Retrieving and explaining company profile information (industry, size, location)
 2. Helping users update or complete onboarding details
-3. Assisting with document uploads and management
-4. Checking eligibility for loans/grants based on profile data
 
 Example queries you can handle:
 - "What industries qualify for this grant?"
 - "How do I update my business address?"
 - "Where should I upload my SSM certificate?"
 - "Am I eligible for this loan based on my profile?"
+
+If the user is viewing or updating, respond with:
+{
+  "message": "...",
+  "switch_tab": "profile"
+}
 """
 
 class ProfileAgent(BaseAgent):
