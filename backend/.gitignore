@@ -24,3 +24,5 @@ build/
 # OS-specific files (Windows and macOS)
 .DS_Store
 Thumbs.db
+
+workspace/
