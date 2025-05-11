@@ -1,7 +1,11 @@
-# agents/router_agent.py
 from .base_agent import BaseAgent
+from qwen_agent.utils.output_beautify import typewriter_print
+import logging
+
+logger = logging.getLogger(__name__)
 
 ROUTER_PROMPT = """
+/no_think
 You are a smart assistant that routes queries to the right agent.
 Understand the user's intent and decide which agent should respond.
 
@@ -20,9 +24,16 @@ class RouterAgent(BaseAgent):
     def __init__(self, model_name=None):
         super().__init__(model_name=model_name, system_message=ROUTER_PROMPT.strip())
 
-    def route(self, messages):
-        response = list(self.agent.run(messages))
-        return ''.join([r.get('content', '') for r in response]).strip()
-    
     def handle(self, messages):
-        yield from self.agent.run(messages)
+        logger.info(f"Routing query based on user messages: {messages}")
+        try:
+            response = list(self.agent.run(messages))
+            if response and isinstance(response[-1], list) and response[-1]:
+                last_message = response[-1][-1]  
+                result = last_message.get('content', '').strip()
+            logger.info(f"Router result: {result}")
+            return result
+        except Exception as e:
+            logger.error(f"Error during routing: {str(e)}", exc_info=True)
+            raise
+    

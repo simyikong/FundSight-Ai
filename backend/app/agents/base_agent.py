@@ -9,19 +9,13 @@ class BaseAgent(ABC):
         :param model_name: 'qwen3' (local via Ollama), 'qwen-plus' (cloud), etc.
         :param system_message: System prompt for agent
         """
-        # if model_name is None:
-        #     model_name = Config.LLM_MODEL_NAME
+        if model_name is None:
+            model_name = Config.LLM_MODEL_NAME
             
-        # llm_cfg = {
-        #     'model': model_name,
-        #     'model_server': Config.LLM_MODEL_SERVER,
-        #     'api_key': Config.DASHSCOPE_API_KEY
-        # }
-        
         llm_cfg = {
-            'model': "qwen3:8b",
-            'model_server': "http://127.0.0.1:11434/v1",
-            'api_key': "EMPTY"
+            'model': model_name,
+            'model_server': Config.LLM_MODEL_SERVER,
+            'api_key': Config.DASHSCOPE_API_KEY
         }
     
         self.system_message = system_message

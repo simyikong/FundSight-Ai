@@ -1,7 +1,11 @@
 from .base_agent import BaseAgent
+from qwen_agent.utils.output_beautify import typewriter_print
+import logging
 
+logger = logging.getLogger(__name__)
 
 FINANCIAL_PROMPT = """
+/no_think
 You are a Financial Advisor Agent specialized in providing financial insights and analysis for MSMEs in Malaysia.
 
 Company Profile: {context}
@@ -19,18 +23,31 @@ Example queries you can handle:
 - "How can I improve my financial health score?"
 - "Explain my current cash flow situation"
 
-Respond with:
+Respond strictly in the following JSON format:
 {
-  "message": "...",
+  "message": Your reponse to the user,
   "switch_tab": "financial",
-  "action": "filter_graph",
-  "params": { ... }
+  "action": null,
+  "params": null
 }
 """
 
 class FinancialAgent(BaseAgent):
     def __init__(self, model_name=None):
-        super().__init__(model_name=model_name, system_message=FINANCIAL_PROMPT.strip())
+        super().__init__(
+            model_name=model_name, 
+            system_message=FINANCIAL_PROMPT.strip(),
+            name="Financial Agent",
+            description="Financial Advisor Agent specialized in providing financial insights and analysis."
+        )
 
     def handle(self, messages):
-       yield from self.agent.run(messages)
+        logger.info(f"Financial agent processing request with messages: {messages}")
+        try:
+            response_plain_text = ''
+            for response in self.agent.run(messages=messages):
+                response_plain_text = typewriter_print(response, response_plain_text)
+            return response_plain_text
+        except Exception as e:
+            logger.error(f"Error processing request in Financial Agent:: {str(e)}", exc_info=True)
+            raise

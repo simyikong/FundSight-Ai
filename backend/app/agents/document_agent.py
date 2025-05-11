@@ -1,6 +1,11 @@
 from .base_agent import BaseAgent
+from qwen_agent.utils.output_beautify import typewriter_print
+import logging
+
+logger = logging.getLogger(__name__)
 
 DOCUMENT_PROMPT = """
+/no_think
 You are a Document Analyzer Agent specialized in analyzing business documents.
 You help users analyze uploaded documents like PDFs, images, CSVs.
 
@@ -15,17 +20,24 @@ Example queries you can handle:
 - "Is my utility bill valid as proof of address?"
 - "What information is missing from my documents?"
 - "Analyze this bank statement for income patterns"
-
-Respond with:
-{
-  "message": "..."
-}
 """
 
 class DocumentAgent(BaseAgent):
     def __init__(self, model_name=None):
-        super().__init__(model_name=model_name, system_message=DOCUMENT_PROMPT.strip())
+        super().__init__(
+            model_name=model_name, 
+            system_message=DOCUMENT_PROMPT.strip(),
+            name="Document Agent",
+            description="Analyze uploaded documents"
+        )
 
     def handle(self, messages):
-        # Stream response incrementally (preferred)
-        yield from self.agent.run(messages)
+        logger.info(f"Document agent processing request with messages: {messages}")
+        try:
+            response_plain_text = ''
+            for response in self.agent.run(messages=messages):
+                response_plain_text = typewriter_print(response, response_plain_text)
+            return response_plain_text
+        except Exception as e:
+            logger.error(f"Error processing request in Document Agent:: {str(e)}", exc_info=True)
+            raise

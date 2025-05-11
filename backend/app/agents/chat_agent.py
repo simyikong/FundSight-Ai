@@ -15,7 +15,7 @@ class ChatAgent(BaseAgent):
     def __init__(self):
         super().__init__(
             system_message=CHAT_PROMPT.strip(), 
-            name="ChatAgent", 
+            name="Chat Agent", 
             description="General Purpose Chat Agent"
         )
 
