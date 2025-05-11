@@ -25,9 +25,9 @@ router_agent = RouterAgent()
 
 # Map router output names to agent classes
 AGENT_MAP = {
-    'ProfileAssistant': ProfileAgent,
-    'FinancialAdvisor': FinancialAgent,
-    'BudgetPlanner': BudgetAgent,
+    'ProfileAgent': ProfileAgent,
+    'FinancialAgent': FinancialAgent,
+    'BudgetAgent': BudgetAgent,
     'LoanAgent': LoanAgent,
     'DocumentAgent': DocumentAgent,
     'ChatAgent': ChatAgent
@@ -48,30 +48,27 @@ async def chat(request: ChatRequest):
         messages = [
             {
                 "role": "user",
-                "content": request.query
+                "content": [{'text': request.query}]
             }
         ]
         # Route the query to the appropriate agent
-        # agent_name = router_agent.route(messages).strip()
-        # print(agent_name)
-        # if agent_name in AGENT_MAP:
-        #     agent_class = AGENT_MAP[agent_name]
-        #     agent = agent_class()
-        #     response = list(agent.handle(messages))
-        # else:
-        #     # Fallback to general chat agent
-        try:
+        agent_name = router_agent.handle(messages).strip()
+        agent_name = _clean_ollama_response(agent_name)
+        logger.info(f"Routing to agent: {agent_name}")
+        
+        if agent_name in AGENT_MAP:
+            agent_class = AGENT_MAP[agent_name]
+            agent = agent_class()
+            response_text = _clean_ollama_response(agent.handle(messages))
+        else:
             response_text = _clean_ollama_response(chat_agent.handle(messages))
-            try:
-                response = json.loads(response_text)
-            except json.JSONDecodeError:
-                response = response_text
-            return {"response": response}
-
-        except Exception as agent_error:
-            logger.error(f"Error in chat agent: {str(agent_error)}", exc_info=True)
-            raise
+            
+        try:
+            response = json.loads(response_text)
+        except json.JSONDecodeError:
+            response = response_text
+        return {"response": response}
 
     except Exception as e:
-        logger.error(f"Unhandled error in chat endpoint: {str(e)}", exc_info=True)
+        logger.error(f"Error in processing response in chatbot: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
