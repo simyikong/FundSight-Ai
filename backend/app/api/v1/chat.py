@@ -1,7 +1,7 @@
 import re
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import Response, StreamingResponse
-from ...models.chat_model import ChatRequest, ChatResponse
+from ...models.chat_model import ChatRequest, ChatResponse, Message
 from ...agents.chat_agent import ChatAgent
 from ...agents.router_agent import RouterAgent
 from ...agents.profile_agent import ProfileAgent
@@ -45,12 +45,19 @@ def _clean_ollama_response(text):
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     try:
-        messages = [
-            {
-                "role": "user",
-                "content": [{'text': request.query}]
-            }
-        ]
+        # Initialize messages list with history if provided
+        messages = request.message_history if request.message_history else []
+        
+        # Add new user message
+        if not request.image and not request.file:
+            messages.append({'role': 'user', 'content': request.query})
+        else:
+            messages.append({'role': 'user', 'content': [{'text': request.query}]})
+            if request.image:
+                messages[-1]['content'].append({'image': request.image})
+            if request.file:
+                messages[-1]['content'].append({'file': request.file})
+
         # Route the query to the appropriate agent
         agent_name = router_agent.handle(messages).strip()
         agent_name = _clean_ollama_response(agent_name)
@@ -67,7 +74,11 @@ async def chat(request: ChatRequest):
             response = json.loads(response_text)
         except json.JSONDecodeError:
             response = response_text
-        return {"response": response}
+
+        # Add assistant's response to message history
+        messages.append({'role': 'assistant', 'content': response})
+            
+        return {"response": response, "message_history": messages}
 
     except Exception as e:
         logger.error(f"Error in processing response in chatbot: {str(e)}", exc_info=True)

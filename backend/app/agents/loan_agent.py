@@ -34,9 +34,7 @@ class LoanAgent(BaseAgent):
         )
 
     def handle(self, messages):
-        logger.info(f"Received message: {messages}")
-  
-        # messages.append({"role": "user", "content": [{'/file': 'https://www.smecorp.gov.my/images/pdf/SMEFINANCING.pdf'}]})
+        # messages.append({"role": "user", "content": [{'file': 'https://www.smecorp.gov.my/images/pdf/SMEFINANCING.pdf'}]})
         logger.info(f"Loan agent processing request with messages: {messages}")
         try:
             response_plain_text = ''

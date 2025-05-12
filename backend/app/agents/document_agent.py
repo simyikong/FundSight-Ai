@@ -11,21 +11,17 @@ You help users analyze uploaded documents like PDFs, images, CSVs.
 
 Your capabilities include:
 1. Extracting key information from business documents
+2. Answer to user questions about the documents conciselyu using RAG.
 2. Validating document authenticity and completeness
 3. Linking extracted data to relevant business sections
 4. Flagging missing or incorrect documentation
-
-Example queries you can handle:
-- "Extract information from my SSM certificate"
-- "Is my utility bill valid as proof of address?"
-- "What information is missing from my documents?"
-- "Analyze this bank statement for income patterns"
+/no_think
 """
 
 class DocumentAgent(BaseAgent):
     def __init__(self, model_name=None):
         super().__init__(
-            model_name=model_name, 
+            model_name=model_name,  #qwen-plus-latest
             system_message=DOCUMENT_PROMPT.strip(),
             name="Document Agent",
             description="Analyze uploaded documents"
@@ -33,6 +29,7 @@ class DocumentAgent(BaseAgent):
 
     def handle(self, messages):
         logger.info(f"Document agent processing request with messages: {messages}")
+        messages.append({"role": "user", "content": [{'text':'what is page 9 about in the document?'},{'file': 'https://www.smecorp.gov.my/images/pdf/SMEFINANCING.pdf'}]})
         try:
             response_plain_text = ''
             for response in self.agent.run(messages=messages):

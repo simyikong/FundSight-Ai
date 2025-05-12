@@ -40,8 +40,6 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 #### Install dependencies
 ```sh
 npm install
-npm install react-router-dom@6 @mui/material @emotion/react @emotion/styled
-npm install --save-dev @types/react @types/react-dom
 ```
 
 #### Run the Frontend
