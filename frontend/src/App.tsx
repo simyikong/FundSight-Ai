@@ -21,9 +21,28 @@ const darkTheme = createTheme({
 
 function App() {
   const [chatbotOpen, setChatbotOpen] = useState(false);
+  const [drawerWidth, setDrawerWidth] = useState(350);
 
   const handleChatbotOpen = () => setChatbotOpen(true);
   const handleChatbotClose = () => setChatbotOpen(false);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => { // Use React.MouseEvent<HTMLDivElement>
+    const startX = e.clientX;
+    const startWidth = drawerWidth;
+
+    const doDrag = (e: MouseEvent) => {
+      const newWidth = startWidth - (e.clientX - startX);
+      setDrawerWidth(Math.max(350, Math.min(newWidth, 500))); // Limit width between 350 and 500
+    };
+
+    const stopDrag = () => {
+      document.removeEventListener('mousemove', doDrag);
+      document.removeEventListener('mouseup', stopDrag);
+    };
+
+    document.addEventListener('mousemove', doDrag);
+    document.addEventListener('mouseup', stopDrag);
+  };
 
   return (
     <ThemeProvider theme={darkTheme}>
@@ -146,11 +165,14 @@ function App() {
             </Box>
           </Toolbar>
         </AppBar>
-        <Container maxWidth="lg" sx={{ 
-          mt: 4,
-          mr: chatbotOpen ? '350px' : 4,  // Add margin when chatbot is open
-          transition: 'margin-right 0.3s ease',  // Smooth transition
-        }}>
+        <Container 
+          maxWidth="lg" 
+          sx={{ 
+            mt: 4,
+            // Adjust the width of the container to accommodate the drawer
+            width: `calc(100% - ${drawerWidth}px)`,
+            transition: 'width 0.3s ease',
+          }}>
           <Box>
             <Routes>
               <Route path="/" element={<Home />} />
@@ -163,16 +185,30 @@ function App() {
           anchor="right" 
           open={chatbotOpen} 
           onClose={handleChatbotClose}
-          variant="persistent"  // Changed to persistent drawer
+          variant="persistent"
           PaperProps={{ 
             sx: { 
-              width: 350,
+              width: drawerWidth,
               height: '100vh',
               border: 'none',
               boxShadow: '-4px 0 25px rgba(0, 0, 0, 0.15)',
+              position: 'fixed', // Fixed position
+              right: 0, // Align to the right
             } 
           }}
         >
+          <div 
+            style={{
+              width: '10px',
+              cursor: 'ew-resize',
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              bottom: 0,
+              zIndex: 1000,
+            }}
+            onMouseDown={handleMouseDown}
+          />
           <Chatbot onClose={handleChatbotClose} />
         </Drawer>
       </Router>
