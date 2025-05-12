@@ -46,7 +46,12 @@ def _clean_ollama_response(text):
 async def chat(request: ChatRequest):
     try:
         # Initialize messages list with history if provided
-        messages = request.message_history if request.message_history else []
+        logger.info(f"Received request: {request}")
+        # Convert Message objects to dictionaries
+        messages = [
+            {'role': msg.role, 'content': msg.content} 
+            for msg in (request.message_history if request.message_history else [])
+        ]
         
         # Add new user message
         if not request.file:
