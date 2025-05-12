@@ -49,12 +49,10 @@ async def chat(request: ChatRequest):
         messages = request.message_history if request.message_history else []
         
         # Add new user message
-        if not request.image and not request.file:
+        if not request.file:
             messages.append({'role': 'user', 'content': request.query})
         else:
             messages.append({'role': 'user', 'content': [{'text': request.query}]})
-            if request.image:
-                messages[-1]['content'].append({'image': request.image})
             if request.file:
                 messages[-1]['content'].append({'file': request.file})
 
