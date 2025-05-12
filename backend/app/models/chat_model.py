@@ -7,10 +7,9 @@ class Message(BaseModel):
 
 class ChatRequest(BaseModel):
     query: str
+    message_history: Optional[List[Message]] = None
     image: Optional[str] = None
     file: Optional[str] = None
-    message_history: Optional[List[Message]] = None
-
+    
 class ChatResponse(BaseModel):
     response: Union[str, dict]
-    message_history: List[Message]

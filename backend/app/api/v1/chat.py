@@ -75,10 +75,7 @@ async def chat(request: ChatRequest):
         except json.JSONDecodeError:
             response = response_text
 
-        # Add assistant's response to message history
-        messages.append({'role': 'assistant', 'content': response})
-            
-        return {"response": response, "message_history": messages}
+        return {"response": response}
 
     except Exception as e:
         logger.error(f"Error in processing response in chatbot: {str(e)}", exc_info=True)
