@@ -1,2 +1,24 @@
 # cursor
 .cursorignore
+
+# Dependencies
+node_modules/
+package-lock.json
+package.json
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
