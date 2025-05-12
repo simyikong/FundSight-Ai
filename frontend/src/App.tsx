@@ -103,7 +103,7 @@ function App() {
                   ml: 2,
                   mt: 1.5,
                   mb: 1.5,
-                  px: 5,
+                  px: 3,
                   py: 1.5,
                   fontSize: '1rem',
                   textTransform: 'none',
@@ -141,7 +141,7 @@ function App() {
                   },
                 }}
               >
-                <span className="buttonText">Ask FinBot</span>
+                <span className="buttonText">Ask AI Assistant</span>
               </Button>
             </Box>
           </Toolbar>

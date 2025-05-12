@@ -3,12 +3,13 @@ import { Box, TextField, IconButton, Paper, Typography, CircularProgress, Avatar
 import SendIcon from '@mui/icons-material/Send';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import CloseIcon from '@mui/icons-material/Close';
-
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import MicIcon from '@mui/icons-material/Mic';
-import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';  // Add this line
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';  
 import { keyframes } from '@mui/system';
+import MenuOpenIcon from '@mui/icons-material/MenuOpen';
+import { BiSolidEdit } from "react-icons/bi";
 
 interface Message {
   role: string;
@@ -87,17 +88,6 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       }]);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
     }
   };
 
@@ -249,12 +239,15 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   };
 
   const handleClose = () => {
+    onClose(); // Only call the original onClose prop
+  };
+
+  const handleClearChat = () => {
     setMessages([]); // Clear messages from state
     localStorage.removeItem('chatMessages'); // Clear messages from localStorage
     setInput(''); // Clear input field
     setImage(null); // Clear any uploaded image
     setFile(null); // Clear any uploaded file
-    onClose(); // Call the original onClose prop
   };
 
   return (
@@ -262,7 +255,7 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       height: '100%', 
       display: 'flex', 
       flexDirection: 'column',
-      background: 'linear-gradient(135deg, #0F172A 0%, #312E81 100%)',  // Dark blue-purple gradient
+      background: 'linear-gradient(135deg, #0F172A 0%, #312E81 100%)',
       borderRadius: '16px',
       backdropFilter: 'blur(10px)',
       border: '1px solid rgba(255, 255, 255, 0.1)',
@@ -276,61 +269,41 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         background: 'rgba(255,255,255,0.05)',
         backdropFilter: 'blur(5px)',
       }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Avatar sx={{ 
-            bgcolor: 'transparent',
-            background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',  // Soft purple to blue gradient
-            boxShadow: '0 4px 20px rgba(224, 195, 252, 0.3)',
-            transition: 'all 0.3s ease',
-            position: 'relative',
-            '&:before': {
-              content: '""',
-              position: 'absolute',
-              inset: -3,
-              borderRadius: '50%',
-              padding: '3px',
-              background: 'linear-gradient(135deg, rgba(224, 195, 252, 0.3) 0%, rgba(142, 197, 252, 0.3) 100%)',
-              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-              WebkitMaskComposite: 'xor',
-              maskComposite: 'exclude',
-            },
-            '&:hover': {
-              transform: 'scale(1.05)',
-              boxShadow: '0 6px 25px rgba(142, 197, 252, 0.4)',
-              '&:before': {
-                background: 'linear-gradient(135deg, rgba(224, 195, 252, 0.5) 0%, rgba(142, 197, 252, 0.5) 100%)',
-              }
-            }
-          }}>
-            <RocketLaunchIcon sx={{ 
-              fontSize: '1.5rem',
-              filter: 'brightness(1.2)',
-              color: '#13111C'  // Dark color for better contrast
-            }} />
-          </Avatar>
-          <Typography variant="h6" sx={{ 
-            fontWeight: 700,
-            background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',  // Matching gradient
-            backgroundClip: 'text',
-            WebkitBackgroundClip: 'text',
-            color: 'transparent',
-            letterSpacing: '0.5px',
-            textShadow: '0 2px 10px rgba(224, 195, 252, 0.2)',
-            transition: 'all 0.3s ease',
-            '&:hover': {
-              letterSpacing: '0.7px',
-              textShadow: '0 4px 15px rgba(142, 197, 252, 0.3)',
-            }
-          }}>AI Assistant</Typography>
-        </Box>
         <IconButton onClick={handleClose} size="small" sx={{ 
           color: 'rgba(255,255,255,0.7)',
           '&:hover': {
-            color: 'white',
-            background: 'rgba(255,255,255,0.1)'
+            color: '#E0C3FC',
+            background: 'rgba(224, 195, 252, 0.1)'
           }
         }}>
-          <CloseIcon />
+          <MenuOpenIcon sx={{ 
+            transform: 'rotate(180deg)',
+            transition: 'transform 0.3s ease'
+          }} />
+        </IconButton>
+
+        <Typography variant="h6" sx={{ 
+          fontWeight: 700,
+          background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
+          backgroundClip: 'text',
+          WebkitBackgroundClip: 'text',
+          color: 'transparent',
+          letterSpacing: '0.5px',
+          textShadow: '0 2px 10px rgba(224, 195, 252, 0.2)',
+        }}>AI Assistant</Typography>
+
+        <IconButton 
+          onClick={handleClearChat}
+          size="small" 
+          sx={{ 
+            color: 'rgba(255,255,255,0.7)',
+            '&:hover': {
+              color: '#E0C3FC',
+              background: 'rgba(224, 195, 252, 0.1)'
+            }
+          }}
+        >
+          <BiSolidEdit size={20} />
         </IconButton>
       </Box>
       <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
