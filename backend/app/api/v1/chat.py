@@ -45,16 +45,18 @@ def _clean_ollama_response(text):
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     try:
-        # Initialize messages list with history if provided
-        messages = request.message_history if request.message_history else []
+        logger.info(f"Received request: {request}")
+        # Convert Message objects to dictionaries
+        messages = [
+            {'role': msg.role, 'content': msg.content} 
+            for msg in (request.message_history if request.message_history else [])
+        ]
         
         # Add new user message
-        if not request.image and not request.file:
+        if not request.file:
             messages.append({'role': 'user', 'content': request.query})
         else:
             messages.append({'role': 'user', 'content': [{'text': request.query}]})
-            if request.image:
-                messages[-1]['content'].append({'image': request.image})
             if request.file:
                 messages[-1]['content'].append({'file': request.file})
 
@@ -71,11 +73,17 @@ async def chat(request: ChatRequest):
             response_text = _clean_ollama_response(chat_agent.handle(messages))
             
         try:
-            response = json.loads(response_text)
+            llm_response = json.loads(response_text)
         except json.JSONDecodeError:
-            response = response_text
+            llm_response = response_text
+        
+        switch_tab = None
+        if agent_name == 'FinancialAgent':
+            switch_tab = 'Dashboard'
+        elif agent_name == 'LoanAgent':
+            switch_tab = 'Loan'
 
-        return {"response": response}
+        return {"response": llm_response, "switch_tab": switch_tab}
 
     except Exception as e:
         logger.error(f"Error in processing response in chatbot: {str(e)}", exc_info=True)

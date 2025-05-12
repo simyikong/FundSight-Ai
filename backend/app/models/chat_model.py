@@ -8,8 +8,8 @@ class Message(BaseModel):
 class ChatRequest(BaseModel):
     query: str
     message_history: Optional[List[Message]] = None
-    image: Optional[str] = None
     file: Optional[str] = None
     
 class ChatResponse(BaseModel):
     response: Union[str, dict]
+    switch_tab: Optional[str] = None

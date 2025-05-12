@@ -10,10 +10,13 @@ import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import { keyframes } from '@mui/system';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import { BiSolidEdit } from "react-icons/bi";
+import { chatApi } from '../../api/chatbot';
+import ReactMarkdown from 'react-markdown';
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 
 interface Message {
   role: string;
-  content: string | Array<{text?: string; image?: string; file?: string}>;
+  content: string | Array<{text?: string; file?: string}>;
   liked?: boolean;
   disliked?: boolean;
 }
@@ -25,13 +28,9 @@ const pulseAnimation = keyframes`
 `;
 
 const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const [messages, setMessages] = useState<Message[]>(() => {
-    const savedMessages = localStorage.getItem('chatMessages');
-    return savedMessages ? JSON.parse(savedMessages) : [];
-  });
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [image, setImage] = useState<string | null>(null);
   const [file, setFile] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -48,38 +47,62 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     scrollToBottom();
   }, [messages]);
 
+  const navigate = useNavigate(); 
+
+  const handleTabSwitch = (tabName: string) => {
+    switch (tabName) {
+      case 'Dashboard':
+        navigate('/dashboard'); // Navigate to Dashboard tab
+        break;
+      case 'Loan':
+        navigate('/loan'); // Navigate to Loan tab
+        break;
+      default:
+        console.log('Unknown tab');
+        break;
+    }
+  };
+
   const handleSend = async () => {
-    if (!input.trim() && !image && !file) return;
+    if (!input.trim() && !file) return;
 
     const newMessage: Message = {
       role: 'user',
-      content: image || file 
-        ? [{ text: input }, ...(image ? [{ image }] : []), ...(file ? [{ file }] : [])]
+      content: file 
+        ? [{ text: input }, ...(file ? [{ file }] : [])]
         : input
     };
 
     setMessages(prev => [...prev, newMessage]);
     setInput('');
-    setImage(null);
     setFile(null);
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/v1/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: input,
-          message_history: messages,
-          image,
-          file
-        }),
-      });
+      const messageData = {
+        query: input,
+        message_history: messages,
+        ...(file && { file })
+      };
+      const llm_response = await chatApi.sendMessage(messageData);
 
-      const data = await response.json();
-      setMessages(data.message_history);
+      let content: string 
+      if (typeof llm_response.data.response === 'string') {
+        content = llm_response.data.response;
+      } else if (typeof llm_response.data.response === 'object' && llm_response.data.response !== null) {
+        content = llm_response.data.response.message;
+      } else {
+        content = 'Unexpected response format.';
+      }
+
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: content
+      }]);
+
+      if (llm_response.data.switch_tab) {
+        handleTabSwitch(llm_response.data.switch_tab);
+      }
     } catch (error) {
       console.error('Error sending message:', error);
       setMessages(prev => [...prev, {
@@ -147,7 +170,7 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     const content = typeof message.content === 'string' 
       ? message.content 
       : message.content.map(item => item.text).join(' ');
-
+  
     return (
       <Box
         sx={{
@@ -161,7 +184,7 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <Avatar
             sx={{
               bgcolor: 'transparent',
-              background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',  // Matching header gradient
+              background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
               animation: isLoading ? `${pulseAnimation} 2s infinite` : 'none',
               boxShadow: '0 4px 20px rgba(224, 195, 252, 0.2)',
             }}
@@ -173,32 +196,35 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           <Paper
             elevation={2}
             sx={{
-              p: 2,
+              py: 0.5,  
+              px: 2,    
               borderRadius: 3,
               background: message.role === 'user' 
-                ? 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)'  // Updated to match the modern gradient
+                ? 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)'
                 : 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.1) 100%)',
               color: 'white',
               boxShadow: message.role === 'user' 
-                ? '0 4px 20px rgba(224, 195, 252, 0.2)'  // Enhanced glow effect
+                ? '0 4px 20px rgba(224, 195, 252, 0.2)'
                 : '0 4px 12px rgba(0,0,0,0.15)',
-              backdropFilter: 'blur(10px)',  // Added glass effect
+              backdropFilter: 'blur(10px)',
               border: message.role === 'user'
                 ? '1px solid rgba(255, 255, 255, 0.2)'
                 : '1px solid rgba(255, 255, 255, 0.1)',
             }}
           >
             <Typography sx={{ 
-              lineHeight: 1.6, 
+              lineHeight: 1.2,  // Adjust line height for smaller bubble
               color: message.role === 'user' ? '#13111C' : 'white',
               fontWeight: message.role === 'user' ? 500 : 400,
             }}>
-              {content}
+              <ReactMarkdown>{content}</ReactMarkdown>
             </Typography>
             {typeof message.content !== 'string' && message.content.map((item, idx) => (
-              item.image && (
+              item.file && (
                 <Box key={idx} sx={{ mt: 1, borderRadius: 2, overflow: 'hidden' }}>
-                  <img src={item.image} alt="Uploaded" style={{ maxWidth: '100%', maxHeight: '200px' }} />
+                  <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                    Attached file
+                  </Typography>
                 </Box>
               )
             ))}
@@ -239,14 +265,13 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   };
 
   const handleClose = () => {
-    onClose(); // Only call the original onClose prop
+    onClose(); 
   };
 
   const handleClearChat = () => {
     setMessages([]); // Clear messages from state
     localStorage.removeItem('chatMessages'); // Clear messages from localStorage
     setInput(''); // Clear input field
-    setImage(null); // Clear any uploaded image
     setFile(null); // Clear any uploaded file
   };
 
@@ -256,7 +281,7 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       display: 'flex', 
       flexDirection: 'column',
       background: 'linear-gradient(135deg, #0F172A 0%, #312E81 100%)',
-      borderRadius: '16px',
+      borderRadius: '0px',
       backdropFilter: 'blur(10px)',
       border: '1px solid rgba(255, 255, 255, 0.1)',
     }}>
@@ -336,6 +361,7 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             type="file"
             style={{ display: 'none' }}
             id="file-upload"
+            accept=".pdf,.docx,.jpg,.jpeg,.png,.csv,.xlsx"
             onChange={handleFileUpload}
           />
           <TextField
@@ -351,13 +377,13 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               sx: { 
                 color: 'white',
                 '& input': {
-                  paddingTop: '7px',  // Adjust vertical alignment
+                  paddingTop: '7px', 
                   paddingBottom: '4px',
                 },
                 '& input::placeholder': {
                   color: 'rgba(255,255,255,0.5)',
-                  opacity: 1,  // Fix opacity in some browsers
-                  verticalAlign: 'middle',  // Center align placeholder
+                  opacity: 1,  
+                  verticalAlign: 'middle', 
                 },
               }
             }}
@@ -379,7 +405,7 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             onClick={handleSend}
             disabled={isLoading}
             sx={{
-              background: 'linear-gradient(215deg, #a3c1e2 0%, #7a8cc2 100%)',  // Muted, natural blue/purple
+              background: 'linear-gradient(215deg, #a3c1e2 0%, #7a8cc2 100%)', 
               color: '#ffffff',
               '&:hover': {
                 background: 'linear-gradient(215deg, #8fb3da 0%, #6b7bb5 100%)',

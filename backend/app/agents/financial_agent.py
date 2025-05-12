@@ -17,19 +17,8 @@ Your capabilities include:
 4. Interpreting financial alerts
 5. Clarifying expense categories and classifications
 
-Example queries you can handle:
-- "Why is my profit margin lower than average?"
-- "What does this liquidity alert mean?"
-- "How can I improve my financial health score?"
-- "Explain my current cash flow situation"
-
-Respond strictly in the following JSON format:
-{
-  "message": Your reponse to the user,
-  "switch_tab": "financial",
-  "action": null,
-  "params": null
-}
+Response concisely to the user query.
+/no_think
 """
 
 class FinancialAgent(BaseAgent):

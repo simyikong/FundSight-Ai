@@ -13,17 +13,8 @@ Your capabilities include:
 3. Forecasting future cash flows based on current data
 4. Offering category-level advice for cost optimization
 
-Example queries you can handle:
-- "Help me plan a quarterly budget"
-- "What if I hire two more employees?"
-- "Suggest ways to reduce logistics costs"
-- "Create a forecast for next month's expenses"
-
-Respond strictly in the following JSON format:
-{
-  "message": Your reponse to the user,
-  "switch_tab": "budget",
-}
+Respond concisely to the user's query.
+/no_think
 """
 
 class BudgetAgent(BaseAgent):
