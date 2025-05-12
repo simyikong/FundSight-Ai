@@ -3,7 +3,6 @@ import {
   Box,
   Button,
   Typography,
-  TextField,
   MenuItem,
   FormControlLabel,
   Checkbox,
@@ -14,9 +13,8 @@ import {
   CardContent,
   useTheme
 } from '@mui/material';
-import { FiInfo } from 'react-icons/fi';
 import MultiFileUpload from '../FileUpload/MultiFileUpload';
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
+import FormField from './FormField';
 
 interface FileWithPreview extends File {
   preview: string;
@@ -79,95 +77,37 @@ const LoanForm: React.FC = () => {
         
         <Box component="form" onSubmit={handleSubmit}>
           <Stack spacing={4}>
-            <Box>
-              <Typography 
-                variant="subtitle1" 
-                sx={{ 
-                  fontWeight: 600, 
-                  mb: 1.5, 
-                  color: 'text.primary' 
-                }}
-              >
-                Funding Goal
-              </Typography>
-              <TextField
-                select
-                fullWidth
-                value={fundingGoal}
-                onChange={(e) => setFundingGoal(e.target.value)}
-                placeholder="Select funding purpose"
-                variant="outlined"
-                size="medium"
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 1.5,
-                    transition: 'all 0.2s',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                    },
-                  }
-                }}
-              >
-                <MenuItem value="">
-                  <em>Select funding purpose</em>
+            <FormField
+              label="Funding Goal"
+              select
+              value={fundingGoal}
+              onChange={(e) => setFundingGoal(e.target.value)}
+              placeholder="Select funding purpose"
+              helperText="Select the primary purpose for this loan"
+            >
+              <MenuItem value="">
+                <em>Select funding purpose</em>
+              </MenuItem>
+              {fundingGoalOptions.map((option) => (
+                <MenuItem key={option} value={option.toLowerCase()}>
+                  {option}
                 </MenuItem>
-                {fundingGoalOptions.map((option) => (
-                  <MenuItem key={option} value={option.toLowerCase()}>
-                    {option}
-                  </MenuItem>
-                ))}
-              </TextField>
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                <InfoOutlinedIcon fontSize="small" sx={{ mr: 0.7, color: 'text.secondary', fontSize: 16 }} />
-                <Typography variant="caption" color="text.secondary">
-                  Select the primary purpose for this loan
-                </Typography>
-              </Box>
-            </Box>
+              ))}
+            </FormField>
             
-            <Box>
-              <Typography 
-                variant="subtitle1" 
-                sx={{ 
-                  fontWeight: 600, 
-                  mb: 1.5, 
-                  color: 'text.primary' 
-                }}
-              >
-                Preferred Amount
-              </Typography>
-              <TextField 
-                type="number" 
-                placeholder="Enter amount in USD" 
-                fullWidth
-                variant="outlined"
-                size="medium"
-                value={amount}
-                onChange={(e) => setAmount(e.target.value)}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 1.5,
-                    transition: 'all 0.2s',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                    },
-                  }
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <Typography variant="body1" sx={{ mr: 1, color: 'text.secondary' }}>
-                      $
-                    </Typography>
-                  ),
-                }}
-              />
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                <InfoOutlinedIcon fontSize="small" sx={{ mr: 0.7, color: 'text.secondary', fontSize: 16 }} />
-                <Typography variant="caption" color="text.secondary">
-                  Enter the loan amount you're seeking in US Dollars
+            <FormField
+              label="Preferred Amount"
+              type="number" 
+              placeholder="Enter amount in USD" 
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              helperText="Enter the loan amount you're seeking in US Dollars"
+              startAdornment={
+                <Typography variant="body1" sx={{ mr: 1, color: 'text.secondary' }}>
+                  $
                 </Typography>
-              </Box>
-            </Box>
+              }
+            />
 
             <Box>
               <Typography 
@@ -219,42 +159,15 @@ const LoanForm: React.FC = () => {
               </Typography>
             </Divider>
 
-            <Box>
-              <Typography 
-                variant="subtitle1" 
-                sx={{ 
-                  fontWeight: 600, 
-                  mb: 1.5, 
-                  color: 'text.primary' 
-                }}
-              >
-                Financial Summary
-              </Typography>
-              <TextField 
-                placeholder="Enter financial details if not uploading documents" 
-                multiline
-                rows={5}
-                fullWidth
-                variant="outlined"
-                value={financialSummary}
-                onChange={(e) => setFinancialSummary(e.target.value)}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderRadius: 1.5,
-                    transition: 'all 0.2s',
-                    '&:hover': {
-                      borderColor: 'primary.main',
-                    },
-                  }
-                }}
-              />
-              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
-                <InfoOutlinedIcon fontSize="small" sx={{ mr: 0.7, color: 'text.secondary', fontSize: 16 }} />
-                <Typography variant="caption" color="text.secondary">
-                  Please provide details about your business finances, including revenue, profit margins, and existing debt
-                </Typography>
-              </Box>
-            </Box>
+            <FormField
+              label="Financial Summary"
+              placeholder="Enter financial details if not uploading documents" 
+              multiline
+              rows={5}
+              value={financialSummary}
+              onChange={(e) => setFinancialSummary(e.target.value)}
+              helperText="Please provide details about your business finances, including revenue, profit margins, and existing debt"
+            />
 
             <FormControlLabel
               control={
