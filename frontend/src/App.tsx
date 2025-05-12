@@ -1,32 +1,29 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { createTheme, ThemeProvider, CssBaseline, AppBar, Toolbar, Typography, Button, Box, Container, Drawer, IconButton } from '@mui/material';
+import { ThemeProvider, CssBaseline, AppBar, Toolbar, Typography, Button, Box, Container, Drawer, IconButton } from '@mui/material';
+import { theme, responsiveDarkTheme } from './theme';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Loan from './pages/Loan';
 import Chatbot from './components/Chatbot/Chatbot';
-
-const darkTheme = createTheme({
-  palette: {
-    mode: 'dark',
-    primary: {
-      main: '#1976d2',
-    },
-    background: {
-      default: '#121212',
-      paper: '#1e1e1e',
-    },
-  },
-});
+import Brightness4Icon from '@mui/icons-material/Brightness4';
+import Brightness7Icon from '@mui/icons-material/Brightness7';
 
 function App() {
   const [chatbotOpen, setChatbotOpen] = useState(false);
   const [drawerWidth, setDrawerWidth] = useState(350);
+  const [darkMode, setDarkMode] = useState(false);
 
   const handleChatbotOpen = () => setChatbotOpen(true);
   const handleChatbotClose = () => setChatbotOpen(false);
+  const toggleTheme = () => setDarkMode(!darkMode);
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => { // Use React.MouseEvent<HTMLDivElement>
+  const currentTheme = useMemo(() => 
+    darkMode ? responsiveDarkTheme : theme, 
+    [darkMode]
+  );
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const startX = e.clientX;
     const startWidth = drawerWidth;
 
@@ -45,10 +42,10 @@ function App() {
   };
 
   return (
-    <ThemeProvider theme={darkTheme}>
+    <ThemeProvider theme={currentTheme}>
       <CssBaseline />
       <Router>
-        <AppBar position="static" elevation={2} sx={{ background: 'rgba(18,18,18,0.95)', boxShadow: '0 2px 12px rgba(0,0,0,0.2)' }}>
+        <AppBar position="fixed" elevation={0}>
           <Toolbar sx={{ minHeight: 70, display: 'flex', alignItems: 'center', position: 'relative' }}>
             <Typography
               variant="h5"
@@ -60,8 +57,8 @@ function App() {
                 color: 'white',
                 textDecoration: 'none',
                 transition: 'color 0.2s',
-                '&:hover': { color: 'primary.main', cursor: 'pointer' },
-                fontFamily: 'Montserrat, Roboto, sans-serif',
+                '&:hover': { color: 'primary.light', cursor: 'pointer' },
+                fontFamily: '"Roboto", "Helvetica", sans-serif',
                 mr: 3,
                 zIndex: 2,
               }}
@@ -76,14 +73,12 @@ function App() {
                 to="/dashboard"
                 sx={{
                   fontWeight: 500,
-                  fontSize: '1.1rem',
-                  letterSpacing: 0.5,
-                  px: 3,
-                  borderRadius: 2,
-                  transition: 'background 0.2s, color 0.2s',
+                  fontSize: '1rem',
+                  px: 2,
+                  transition: 'all 0.2s',
                   '&:hover': {
-                    background: 'rgba(25, 118, 210, 0.08)',
-                    color: 'primary.main',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    transform: 'translateY(-2px)',
                   },
                 }}
               >
@@ -95,72 +90,41 @@ function App() {
                 to="/loan"
                 sx={{
                   fontWeight: 500,
-                  fontSize: '1.1rem',
-                  letterSpacing: 0.5,
-                  px: 3,
-                  borderRadius: 2,
-                  transition: 'background 0.2s, color 0.2s',
+                  fontSize: '1rem',
+                  px: 2,
+                  transition: 'all 0.2s',
                   '&:hover': {
-                    background: 'rgba(25, 118, 210, 0.08)',
-                    color: 'primary.main',
+                    background: 'rgba(255, 255, 255, 0.1)',
+                    transform: 'translateY(-2px)',
                   },
                 }}
               >
                 Loan
               </Button>
             </Box>
-            <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end', zIndex: 2 }}>
+            <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end', alignItems: 'center', gap: 2, zIndex: 2 }}>
+              <IconButton color="inherit" onClick={toggleTheme} sx={{ mr: 1 }}>
+                {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
+              </IconButton>
               <Button
                 variant="contained"
                 onClick={handleChatbotOpen}
                 sx={{
                   fontWeight: 600,
-                  borderRadius: '28px',
-                  background: '#13111C',
-                  position: 'relative',
-                  border: 'none',
-                  ml: 2,
-                  mt: 1.5,
-                  mb: 1.5,
+                  borderRadius: 28,
                   px: 3,
-                  py: 1.5,
-                  fontSize: '1rem',
-                  textTransform: 'none',
+                  py: 1,
+                  fontSize: '0.95rem',
+                  boxShadow: '0px 4px 14px rgba(0, 0, 0, 0.15)',
                   transition: 'all 0.3s ease',
-                  '& .buttonText': {
-                    background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
-                    WebkitBackgroundClip: 'text',
-                    backgroundClip: 'text',
-                    color: 'transparent',
-                  },
-                  '&:before': {
-                    content: '""',
-                    position: 'absolute',
-                    inset: -2,
-                    borderRadius: '30px',
-                    padding: '2px',
-                    background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
-                    WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                    WebkitMaskComposite: 'xor',
-                    maskComposite: 'exclude',
-                  },
+                  background: theme => `linear-gradient(135deg, ${theme.palette.primary.light} 0%, ${theme.palette.primary.dark} 100%)`,
                   '&:hover': {
-                    background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
-                    transform: 'translateY(-1px)',
-                    '&:before': {
-                      opacity: 0,
-                    },
-                    boxShadow: '0 4px 20px rgba(224, 195, 252, 0.3)',
-                    '& .buttonText': {
-                      background: '#13111C',
-                      WebkitBackgroundClip: 'text',
-                      backgroundClip: 'text',
-                      color: 'transparent',
-                    },
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0px 6px 20px rgba(0, 0, 0, 0.25)',
                   },
                 }}
               >
-                <span className="buttonText">Ask AI Assistant</span>
+                Ask AI Assistant
               </Button>
             </Box>
           </Toolbar>
@@ -168,9 +132,10 @@ function App() {
         <Container 
           maxWidth="lg" 
           sx={{ 
-            mt: 4,
-            // Adjust the width of the container to accommodate the drawer
-            width: `calc(100% - ${drawerWidth}px)`,
+            mt: 10,
+            mb: 4,
+            px: { xs: 2, sm: 3, md: 4 },
+            width: chatbotOpen ? `calc(100% - ${drawerWidth}px)` : '100%',
             transition: 'width 0.3s ease',
           }}>
           <Box>
@@ -192,8 +157,8 @@ function App() {
               height: '100vh',
               border: 'none',
               boxShadow: '-4px 0 25px rgba(0, 0, 0, 0.15)',
-              position: 'fixed', // Fixed position
-              right: 0, // Align to the right
+              position: 'fixed',
+              right: 0,
             } 
           }}
         >

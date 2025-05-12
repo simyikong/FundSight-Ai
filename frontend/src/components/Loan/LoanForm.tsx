@@ -2,17 +2,21 @@ import React, { useState } from 'react';
 import {
   Box,
   Button,
-  Container,
   Typography,
   TextField,
   MenuItem,
   FormControlLabel,
   Checkbox,
   Paper,
-  Stack
+  Stack,
+  Divider,
+  Card,
+  CardContent,
+  useTheme
 } from '@mui/material';
 import { FiInfo } from 'react-icons/fi';
 import MultiFileUpload from '../FileUpload/MultiFileUpload';
+import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined';
 
 interface FileWithPreview extends File {
   preview: string;
@@ -29,6 +33,7 @@ const fundingGoalOptions = [
 ];
 
 const LoanForm: React.FC = () => {
+  const theme = useTheme();
   const [showIslamicOnly, setShowIslamicOnly] = useState(false);
   const [fundingGoal, setFundingGoal] = useState('');
   const [amount, setAmount] = useState('');
@@ -48,139 +53,258 @@ const LoanForm: React.FC = () => {
   };
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Paper 
-        component="form" 
-        onSubmit={handleSubmit}
-        elevation={1}
-        sx={{ p: 4, borderRadius: 2 }}
-      >
-        <Stack spacing={3}>
-          <Typography variant="h5" component="h2" gutterBottom>
-            Loan Application
-          </Typography>
-          
-          <Box>
-            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-              Funding Goal
-            </Typography>
-            <TextField
-              select
-              fullWidth
-              value={fundingGoal}
-              onChange={(e) => setFundingGoal(e.target.value)}
-              placeholder="Select funding purpose"
-              variant="outlined"
-              size="small"
-            >
-              <MenuItem value="">
-                <em>Select funding purpose</em>
-              </MenuItem>
-              {fundingGoalOptions.map((option) => (
-                <MenuItem key={option} value={option.toLowerCase()}>
-                  {option}
+    <Card 
+      elevation={0} 
+      sx={{ 
+        borderRadius: 2, 
+        border: `1px solid ${theme.palette.divider}`,
+        overflow: 'hidden'
+      }}
+    >
+      <CardContent sx={{ px: { xs: 2, sm: 3, md: 4 }, py: 3 }}>
+        <Typography 
+          variant="h5" 
+          component="h2" 
+          gutterBottom 
+          sx={{ 
+            fontWeight: 600,
+            color: 'text.primary',
+            mb: 3
+          }}
+        >
+          Loan Application
+        </Typography>
+        
+        <Divider sx={{ mb: 4 }} />
+        
+        <Box component="form" onSubmit={handleSubmit}>
+          <Stack spacing={4}>
+            <Box>
+              <Typography 
+                variant="subtitle1" 
+                sx={{ 
+                  fontWeight: 600, 
+                  mb: 1.5, 
+                  color: 'text.primary' 
+                }}
+              >
+                Funding Goal
+              </Typography>
+              <TextField
+                select
+                fullWidth
+                value={fundingGoal}
+                onChange={(e) => setFundingGoal(e.target.value)}
+                placeholder="Select funding purpose"
+                variant="outlined"
+                size="medium"
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 1.5,
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
+              >
+                <MenuItem value="">
+                  <em>Select funding purpose</em>
                 </MenuItem>
-              ))}
-            </TextField>
-            <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-              <FiInfo size={12} style={{ marginRight: '4px', color: '#757575' }} />
-              <Typography variant="caption" color="text.secondary">
-                Select the primary purpose for this loan
-              </Typography>
+                {fundingGoalOptions.map((option) => (
+                  <MenuItem key={option} value={option.toLowerCase()}>
+                    {option}
+                  </MenuItem>
+                ))}
+              </TextField>
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                <InfoOutlinedIcon fontSize="small" sx={{ mr: 0.7, color: 'text.secondary', fontSize: 16 }} />
+                <Typography variant="caption" color="text.secondary">
+                  Select the primary purpose for this loan
+                </Typography>
+              </Box>
             </Box>
-          </Box>
-          
-          <Box>
-            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-              Preferred Amount
-            </Typography>
-            <TextField 
-              type="number" 
-              placeholder="Enter amount in USD" 
-              fullWidth
-              variant="outlined"
-              size="small"
-              value={amount}
-              onChange={(e) => setAmount(e.target.value)}
-            />
-            <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-              <FiInfo size={12} style={{ marginRight: '4px', color: '#757575' }} />
-              <Typography variant="caption" color="text.secondary">
-                Amount in USD
+            
+            <Box>
+              <Typography 
+                variant="subtitle1" 
+                sx={{ 
+                  fontWeight: 600, 
+                  mb: 1.5, 
+                  color: 'text.primary' 
+                }}
+              >
+                Preferred Amount
               </Typography>
-            </Box>
-          </Box>
-
-          <Box>
-            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-              Upload Financial Documents
-            </Typography>
-            <MultiFileUpload 
-              maxFiles={10}
-              maxSize={10 * 1024 * 1024} // 10MB
-              acceptTypes="PDF, DOC, DOCX, XLS, XLSX, CSV"
-              accept={{
-                'application/pdf': ['.pdf'],
-                'application/msword': ['.doc'],
-                'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-                'application/vnd.ms-excel': ['.xls', '.csv'],
-                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
-              }}
-              onFilesChange={setUploadedFiles}
-            />
-          </Box>
-
-          <Typography variant="subtitle1" fontWeight="bold">
-            OR
-          </Typography>
-
-          <Box>
-            <Typography variant="subtitle1" fontWeight="bold" gutterBottom>
-              Financial Summary
-            </Typography>
-            <TextField 
-              placeholder="Enter financial details if not uploading documents" 
-              multiline
-              rows={5}
-              fullWidth
-              variant="outlined"
-              value={financialSummary}
-              onChange={(e) => setFinancialSummary(e.target.value)}
-            />
-            <Box sx={{ display: 'flex', alignItems: 'center', mt: 0.5 }}>
-              <FiInfo size={12} style={{ marginRight: '4px', color: '#757575' }} />
-              <Typography variant="caption" color="text.secondary">
-                Please provide details about your business finances
-              </Typography>
-            </Box>
-          </Box>
-
-          <FormControlLabel
-            control={
-              <Checkbox 
-                checked={showIslamicOnly}
-                onChange={(e) => setShowIslamicOnly(e.target.checked)}
+              <TextField 
+                type="number" 
+                placeholder="Enter amount in USD" 
+                fullWidth
+                variant="outlined"
+                size="medium"
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 1.5,
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <Typography variant="body1" sx={{ mr: 1, color: 'text.secondary' }}>
+                      $
+                    </Typography>
+                  ),
+                }}
               />
-            }
-            label={
-              <Typography fontWeight="bold">
-                Show Islamic Options Only
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                <InfoOutlinedIcon fontSize="small" sx={{ mr: 0.7, color: 'text.secondary', fontSize: 16 }} />
+                <Typography variant="caption" color="text.secondary">
+                  Enter the loan amount you're seeking in US Dollars
+                </Typography>
+              </Box>
+            </Box>
+
+            <Box>
+              <Typography 
+                variant="subtitle1" 
+                sx={{ 
+                  fontWeight: 600, 
+                  mb: 1.5, 
+                  color: 'text.primary' 
+                }}
+              >
+                Upload Financial Documents
               </Typography>
-            }
-          />
-          
-          <Button 
-            type="submit" 
-            variant="contained" 
-            color="primary" 
-            size="large"
-            sx={{ mt: 2 }}
-          >
-            Find Loan Options
-          </Button>
-        </Stack>
-      </Paper>
-    </Container>
+              <Paper 
+                variant="outlined" 
+                sx={{ 
+                  p: 3, 
+                  borderRadius: 2,
+                  borderStyle: 'dashed',
+                  borderColor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.2)' : 'rgba(0,0,0,0.1)',
+                  bgcolor: theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.02)'
+                }}
+              >
+                <MultiFileUpload 
+                  maxFiles={10}
+                  maxSize={10 * 1024 * 1024} // 10MB
+                  acceptTypes="PDF, DOC, DOCX, XLS, XLSX, CSV"
+                  accept={{
+                    'application/pdf': ['.pdf'],
+                    'application/msword': ['.doc'],
+                    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+                    'application/vnd.ms-excel': ['.xls', '.csv'],
+                    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
+                  }}
+                  onFilesChange={setUploadedFiles}
+                />
+              </Paper>
+            </Box>
+
+            <Divider>
+              <Typography 
+                variant="body2" 
+                sx={{ 
+                  px: 2, 
+                  fontWeight: 500,
+                  color: 'text.secondary'
+                }}
+              >
+                OR
+              </Typography>
+            </Divider>
+
+            <Box>
+              <Typography 
+                variant="subtitle1" 
+                sx={{ 
+                  fontWeight: 600, 
+                  mb: 1.5, 
+                  color: 'text.primary' 
+                }}
+              >
+                Financial Summary
+              </Typography>
+              <TextField 
+                placeholder="Enter financial details if not uploading documents" 
+                multiline
+                rows={5}
+                fullWidth
+                variant="outlined"
+                value={financialSummary}
+                onChange={(e) => setFinancialSummary(e.target.value)}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderRadius: 1.5,
+                    transition: 'all 0.2s',
+                    '&:hover': {
+                      borderColor: 'primary.main',
+                    },
+                  }
+                }}
+              />
+              <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                <InfoOutlinedIcon fontSize="small" sx={{ mr: 0.7, color: 'text.secondary', fontSize: 16 }} />
+                <Typography variant="caption" color="text.secondary">
+                  Please provide details about your business finances, including revenue, profit margins, and existing debt
+                </Typography>
+              </Box>
+            </Box>
+
+            <FormControlLabel
+              control={
+                <Checkbox 
+                  checked={showIslamicOnly}
+                  onChange={(e) => setShowIslamicOnly(e.target.checked)}
+                  sx={{
+                    color: 'primary.main',
+                    '&.Mui-checked': {
+                      color: 'primary.main',
+                    },
+                  }}
+                />
+              }
+              label={
+                <Typography sx={{ fontWeight: 500 }}>
+                  Show Islamic Finance Options Only
+                </Typography>
+              }
+              sx={{ mt: 1 }}
+            />
+            
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+              <Button 
+                type="submit" 
+                variant="contained" 
+                color="primary" 
+                size="large"
+                sx={{ 
+                  minWidth: 200,
+                  py: 1.5,
+                  borderRadius: 3,
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  textTransform: 'none',
+                  boxShadow: '0 4px 14px 0 rgba(0,0,0,0.1)',
+                  transition: 'all 0.2s',
+                  '&:hover': {
+                    transform: 'translateY(-2px)',
+                    boxShadow: '0 6px 20px 0 rgba(0,0,0,0.15)',
+                  }
+                }}
+              >
+                Find Loan Options
+              </Button>
+            </Box>
+          </Stack>
+        </Box>
+      </CardContent>
+    </Card>
   );
 };
 
