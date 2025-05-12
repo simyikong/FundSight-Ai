@@ -10,10 +10,11 @@ import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import { keyframes } from '@mui/system';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import { BiSolidEdit } from "react-icons/bi";
+import { chatApi } from '../../api/chatbot';
 
 interface Message {
   role: string;
-  content: string | Array<{text?: string; image?: string; file?: string}>;
+  content: string | Array<{text?: string; file?: string}>;
   liked?: boolean;
   disliked?: boolean;
 }
@@ -25,13 +26,9 @@ const pulseAnimation = keyframes`
 `;
 
 const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
-  const [messages, setMessages] = useState<Message[]>(() => {
-    const savedMessages = localStorage.getItem('chatMessages');
-    return savedMessages ? JSON.parse(savedMessages) : [];
-  });
+  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [image, setImage] = useState<string | null>(null);
   const [file, setFile] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -49,37 +46,31 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   }, [messages]);
 
   const handleSend = async () => {
-    if (!input.trim() && !image && !file) return;
+    if (!input.trim() && !file) return;
 
     const newMessage: Message = {
       role: 'user',
-      content: image || file 
-        ? [{ text: input }, ...(image ? [{ image }] : []), ...(file ? [{ file }] : [])]
+      content: file 
+        ? [{ text: input }, ...(file ? [{ file }] : [])]
         : input
     };
 
     setMessages(prev => [...prev, newMessage]);
     setInput('');
-    setImage(null);
     setFile(null);
     setIsLoading(true);
 
     try {
-      const response = await fetch('/api/v1/chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          query: input,
-          message_history: messages,
-          image,
-          file
-        }),
-      });
-
-      const data = await response.json();
-      setMessages(data.message_history);
+      const messageData = {
+        query: input,
+        message_history: messages,
+        ...(file && { file })
+      };
+      const response = await chatApi.sendMessage(messageData);
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: response.data.response
+      }]);
     } catch (error) {
       console.error('Error sending message:', error);
       setMessages(prev => [...prev, {
@@ -196,9 +187,11 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               {content}
             </Typography>
             {typeof message.content !== 'string' && message.content.map((item, idx) => (
-              item.image && (
+              item.file && (
                 <Box key={idx} sx={{ mt: 1, borderRadius: 2, overflow: 'hidden' }}>
-                  <img src={item.image} alt="Uploaded" style={{ maxWidth: '100%', maxHeight: '200px' }} />
+                  <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)' }}>
+                    Attached file
+                  </Typography>
                 </Box>
               )
             ))}
@@ -246,7 +239,6 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     setMessages([]); // Clear messages from state
     localStorage.removeItem('chatMessages'); // Clear messages from localStorage
     setInput(''); // Clear input field
-    setImage(null); // Clear any uploaded image
     setFile(null); // Clear any uploaded file
   };
 
@@ -336,6 +328,7 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             type="file"
             style={{ display: 'none' }}
             id="file-upload"
+            accept=".pdf,.docx,.jpg,.jpeg,.png,.csv,.xlsx"
             onChange={handleFileUpload}
           />
           <TextField
