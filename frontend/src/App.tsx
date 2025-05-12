@@ -29,15 +29,91 @@ function App() {
     <ThemeProvider theme={darkTheme}>
       <CssBaseline />
       <Router>
-        <AppBar position="static">
-          <Toolbar>
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+        <AppBar position="static" elevation={2} sx={{ background: 'rgba(18,18,18,0.95)', boxShadow: '0 2px 12px rgba(0,0,0,0.2)' }}>
+          <Toolbar sx={{ minHeight: 70, display: 'flex', alignItems: 'center', position: 'relative' }}>
+            <Typography
+              variant="h5"
+              component={Link}
+              to="/"
+              sx={{
+                fontWeight: 700,
+                letterSpacing: 1,
+                color: 'white',
+                textDecoration: 'none',
+                transition: 'color 0.2s',
+                '&:hover': { color: 'primary.main', cursor: 'pointer' },
+                fontFamily: 'Montserrat, Roboto, sans-serif',
+                mr: 3,
+                zIndex: 2,
+              }}
+            >
               FundSight Ai
             </Typography>
-            <Button color="inherit" component={Link} to="/">Home</Button>
-            <Button color="inherit" component={Link} to="/dashboard">Dashboard</Button>
-            <Button color="inherit" component={Link} to="/loan">Loan</Button>
-            <Button color="inherit" onClick={handleChatbotOpen}>Chatbot</Button>
+            <Box sx={{ flex: 1 }} />
+            <Box sx={{ display: 'flex', gap: 3, position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', zIndex: 1 }}>
+              <Button
+                color="inherit"
+                component={Link}
+                to="/dashboard"
+                sx={{
+                  fontWeight: 500,
+                  fontSize: '1.1rem',
+                  letterSpacing: 0.5,
+                  px: 3,
+                  borderRadius: 2,
+                  transition: 'background 0.2s, color 0.2s',
+                  '&:hover': {
+                    background: 'rgba(25, 118, 210, 0.08)',
+                    color: 'primary.main',
+                  },
+                }}
+              >
+                Dashboard
+              </Button>
+              <Button
+                color="inherit"
+                component={Link}
+                to="/loan"
+                sx={{
+                  fontWeight: 500,
+                  fontSize: '1.1rem',
+                  letterSpacing: 0.5,
+                  px: 3,
+                  borderRadius: 2,
+                  transition: 'background 0.2s, color 0.2s',
+                  '&:hover': {
+                    background: 'rgba(25, 118, 210, 0.08)',
+                    color: 'primary.main',
+                  },
+                }}
+              >
+                Loan
+              </Button>
+            </Box>
+            <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end', zIndex: 2 }}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={handleChatbotOpen}
+                sx={{
+                  fontWeight: 600,
+                  borderRadius: 3,
+                  boxShadow: '0 2px 8px rgba(25,118,210,0.15)',
+                  ml: 2,
+                  px: 3,
+                  py: 1.2,
+                  fontSize: '1rem',
+                  textTransform: 'none',
+                  transition: 'background 0.2s, box-shadow 0.2s',
+                  '&:hover': {
+                    background: 'primary.dark',
+                    boxShadow: '0 4px 16px rgba(25,118,210,0.25)',
+                  },
+                }}
+              >
+                Chatbot
+              </Button>
+            </Box>
           </Toolbar>
         </AppBar>
         <Container maxWidth="lg" sx={{ mt: 4 }}>
@@ -49,16 +125,8 @@ function App() {
             </Routes>
           </Box>
         </Container>
-        <Drawer anchor="right" open={chatbotOpen} onClose={handleChatbotClose} PaperProps={{ sx: { width: 350 } }}>
-          <Box sx={{ p: 2, height: '100%', display: 'flex', flexDirection: 'column' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6">AI Chatbot</Typography>
-              <IconButton onClick={handleChatbotClose}>
-                <span style={{ fontSize: 20 }}>&times;</span>
-              </IconButton>
-            </Box>
-            <Chatbot />
-          </Box>
+        <Drawer anchor="right" open={chatbotOpen} onClose={handleChatbotClose} PaperProps={{ sx: { width: 350, height: '100vh' } }}>
+          <Chatbot onClose={handleChatbotClose} />
         </Drawer>
       </Router>
     </ThemeProvider>
