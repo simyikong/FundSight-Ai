@@ -29,7 +29,7 @@ class DocumentAgent(BaseAgent):
 
     def handle(self, messages):
         logger.info(f"Document agent processing request with messages: {messages}")
-        messages.append({"role": "user", "content": [{'text':'what is page 9 about in the document?'},{'file': 'https://www.smecorp.gov.my/images/pdf/SMEFINANCING.pdf'}]})
+        # messages.append({"role": "user", "content": [{'text':'what is page 9 about in the document?'},{'file': 'https://www.smecorp.gov.my/images/pdf/SMEFINANCING.pdf'}]})
         try:
             response_plain_text = ''
             for response in self.agent.run(messages=messages):

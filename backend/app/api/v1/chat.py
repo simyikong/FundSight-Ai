@@ -45,7 +45,6 @@ def _clean_ollama_response(text):
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     try:
-        # Initialize messages list with history if provided
         logger.info(f"Received request: {request}")
         # Convert Message objects to dictionaries
         messages = [
@@ -74,11 +73,17 @@ async def chat(request: ChatRequest):
             response_text = _clean_ollama_response(chat_agent.handle(messages))
             
         try:
-            response = json.loads(response_text)
+            llm_response = json.loads(response_text)
         except json.JSONDecodeError:
-            response = response_text
+            llm_response = response_text
+        
+        switch_tab = None
+        if agent_name == 'FinancialAgent':
+            switch_tab = 'Dashboard'
+        elif agent_name == 'LoanAgent':
+            switch_tab = 'Loan'
 
-        return {"response": response}
+        return {"response": llm_response, "switch_tab": switch_tab}
 
     except Exception as e:
         logger.error(f"Error in processing response in chatbot: {str(e)}", exc_info=True)

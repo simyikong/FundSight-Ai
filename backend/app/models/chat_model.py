@@ -12,3 +12,4 @@ class ChatRequest(BaseModel):
     
 class ChatResponse(BaseModel):
     response: Union[str, dict]
+    switch_tab: Optional[str] = None

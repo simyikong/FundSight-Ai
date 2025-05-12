@@ -12,12 +12,8 @@ Your capabilities include:
 1. Retrieving and explaining company profile information (industry, size, location)
 2. Helping users update or complete onboarding details
 
-Example queries you can handle:
-- "What industries qualify for this grant?"
-- "How do I update my business address?"
-- "Where should I upload my SSM certificate?"
-- "Am I eligible for this loan based on my profile?"
-
+Respond concisely to the user's query.
+/no_think
 """
 
 class ProfileAgent(BaseAgent):
