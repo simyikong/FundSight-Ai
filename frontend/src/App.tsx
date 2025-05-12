@@ -47,7 +47,7 @@ function App() {
                 zIndex: 2,
               }}
             >
-              FundSight Ai
+              FundSight AI
             </Typography>
             <Box sx={{ flex: 1 }} />
             <Box sx={{ display: 'flex', gap: 3, position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)', zIndex: 1 }}>
@@ -93,30 +93,64 @@ function App() {
             <Box sx={{ flex: 1, display: 'flex', justifyContent: 'flex-end', zIndex: 2 }}>
               <Button
                 variant="contained"
-                color="primary"
                 onClick={handleChatbotOpen}
                 sx={{
                   fontWeight: 600,
-                  borderRadius: 3,
-                  boxShadow: '0 2px 8px rgba(25,118,210,0.15)',
+                  borderRadius: '28px',
+                  background: '#13111C',
+                  position: 'relative',
+                  border: 'none',
                   ml: 2,
-                  px: 3,
-                  py: 1.2,
+                  mt: 1.5,
+                  mb: 1.5,
+                  px: 5,
+                  py: 1.5,
                   fontSize: '1rem',
                   textTransform: 'none',
-                  transition: 'background 0.2s, box-shadow 0.2s',
+                  transition: 'all 0.3s ease',
+                  '& .buttonText': {
+                    background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
+                    WebkitBackgroundClip: 'text',
+                    backgroundClip: 'text',
+                    color: 'transparent',
+                  },
+                  '&:before': {
+                    content: '""',
+                    position: 'absolute',
+                    inset: -2,
+                    borderRadius: '30px',
+                    padding: '2px',
+                    background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
+                    WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                    WebkitMaskComposite: 'xor',
+                    maskComposite: 'exclude',
+                  },
                   '&:hover': {
-                    background: 'primary.dark',
-                    boxShadow: '0 4px 16px rgba(25,118,210,0.25)',
+                    background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
+                    transform: 'translateY(-1px)',
+                    '&:before': {
+                      opacity: 0,
+                    },
+                    boxShadow: '0 4px 20px rgba(224, 195, 252, 0.3)',
+                    '& .buttonText': {
+                      background: '#13111C',
+                      WebkitBackgroundClip: 'text',
+                      backgroundClip: 'text',
+                      color: 'transparent',
+                    },
                   },
                 }}
               >
-                Chatbot
+                <span className="buttonText">Ask FinBot</span>
               </Button>
             </Box>
           </Toolbar>
         </AppBar>
-        <Container maxWidth="lg" sx={{ mt: 4 }}>
+        <Container maxWidth="lg" sx={{ 
+          mt: 4,
+          mr: chatbotOpen ? '350px' : 4,  // Add margin when chatbot is open
+          transition: 'margin-right 0.3s ease',  // Smooth transition
+        }}>
           <Box>
             <Routes>
               <Route path="/" element={<Home />} />
@@ -125,7 +159,20 @@ function App() {
             </Routes>
           </Box>
         </Container>
-        <Drawer anchor="right" open={chatbotOpen} onClose={handleChatbotClose} PaperProps={{ sx: { width: 350, height: '100vh' } }}>
+        <Drawer 
+          anchor="right" 
+          open={chatbotOpen} 
+          onClose={handleChatbotClose}
+          variant="persistent"  // Changed to persistent drawer
+          PaperProps={{ 
+            sx: { 
+              width: 350,
+              height: '100vh',
+              border: 'none',
+              boxShadow: '-4px 0 25px rgba(0, 0, 0, 0.15)',
+            } 
+          }}
+        >
           <Chatbot onClose={handleChatbotClose} />
         </Drawer>
       </Router>
