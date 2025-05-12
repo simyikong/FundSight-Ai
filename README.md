@@ -20,8 +20,13 @@ pip install -r requirements.txt
 ```sh
 uvicorn main:app --reload
 ```
-- The backend will be available at [http://localhost:8000](http://localhost:8000)
+The backend will be available at [http://localhost:8000](http://localhost:8000)
 
+#### To use AI chatbot, run:
+```sh
+ollama run qwen3:8b
+ollama serve
+```
 ---
 
 ### 2. Frontend (React + TypeScript)
