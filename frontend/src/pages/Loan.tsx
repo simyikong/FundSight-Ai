@@ -1,10 +1,14 @@
 import React from 'react';
+import Layout from '../components/Layout';
+import LoanForm from '../components/Loan/LoanForm';
 
 const Loan: React.FC = () => (
-  <div>
-    <h1>Loan Recommendations</h1>
-    <p>Personalized loan options and eligibility info will appear here.</p>
-  </div>
+  <Layout
+    title="Loan Recommendations"
+    subtitle="Fill in your details below to get personalized loan options and eligibility information"
+  >
+    <LoanForm />
+  </Layout>
 );
 
 export default Loan;
