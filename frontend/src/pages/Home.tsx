@@ -2,7 +2,8 @@ import React from 'react';
 import { Box, Typography, Grid, useTheme } from '@mui/material';
 import { FeatureCard } from '../components/Layout';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import BusinessIcon from '@mui/icons-material/Business';
+import CreditScoreIcon from '@mui/icons-material/CreditScore';
 import ForumIcon from '@mui/icons-material/Forum';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 
@@ -40,13 +41,22 @@ const Home: React.FC = () => {
       iconBgColor: "success.light"
     },
     {
-      icon: <AccountBalanceIcon fontSize="large" />,
-      title: "Company Profile & Apply",
-      description: "Complete your company profile and get personalized funding recommendations.",
-      buttonText: "Get Started",
-      buttonLink: "/profile_apply",
+      icon: <BusinessIcon fontSize="large" />,
+      title: "Company Profile",
+      description: "Complete your company profile and upload the necessary business documents.",
+      buttonText: "View Profile",
+      buttonLink: "/company-profile",
       buttonColor: "secondary" as const,
       iconBgColor: "secondary.main"
+    },
+    {
+      icon: <CreditScoreIcon fontSize="large" />,
+      title: "Funding Recommendations",
+      description: "Get personalized funding options based on your business profile.",
+      buttonText: "Get Recommendations",
+      buttonLink: "/funding-recommendations",
+      buttonColor: "info" as const,
+      iconBgColor: "info.main"
     },
     {
       icon: <ForumIcon fontSize="large" />,

@@ -1,4 +1,6 @@
 // Common interfaces for ProfileApply components
+import React from 'react';
+
 export interface CompanyProfile {
   companyName: string;
   registrationNumber: string;
@@ -10,6 +12,7 @@ export interface CompanyProfile {
   revenue: string;
   netProfit: string;
   taxStatus: string;
+  description: string;
 }
 
 export interface UploadedDocument {
@@ -48,16 +51,6 @@ export interface FinancialMetrics {
   lastUpdated: Date;
 }
 
-export interface LoanRecommendation {
-  id: number;
-  name: string;
-  provider: string;
-  amount: string;
-  interestRate: string;
-  eligibilitySummary: string;
-  reasons: string[];
-}
-
 // Constants
 export const COMPANY_TYPES = [
   'Sole Proprietorship',
@@ -85,16 +78,6 @@ export const TAX_STATUSES = [
   'Tax Incentive Program',
   'Tax Exemption',
   'Others'
-];
-
-export const LOAN_PURPOSES = [
-  'Equipment',
-  'Payroll',
-  'Expansion',
-  'Inventory',
-  'Working Capital',
-  'Debt Refinancing',
-  'Other'
 ];
 
 // Document type mapping for gallery view

@@ -142,21 +142,6 @@ const DocumentUploadSection: React.FC<DocumentUploadSectionProps> = ({
 
   return (
     <Box>
-      <Typography variant="subtitle1" sx={{ mb: 2 }}>Company Documents</Typography>
-      
-      <Alert severity="info" sx={{ mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'start' }}>
-          <Info sx={{ mt: 0.5, mr: 1 }} />
-          <Box>
-            <Typography variant="body2" fontWeight="bold">Where are the financial documents?</Typography>
-            <Typography variant="body2">
-              Financial documents (P&L statements, bank statements, invoices) should be uploaded in the 
-              <strong> Financial Records</strong> section. This helps keep your financial data organized by time period 
-              and enables more accurate reporting.
-            </Typography>
-          </Box>
-        </Box>
-      </Alert>
       
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
         Upload your business registration and compliance documents. We'll extract company information to enhance your profile.
