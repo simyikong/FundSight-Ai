@@ -2,11 +2,10 @@ import React, { useState, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
 import { ThemeProvider, CssBaseline, AppBar, Toolbar, Typography, Button, Box, Container, Drawer, IconButton, Grid, Stack } from '@mui/material';
 import { theme } from './theme';
+import { AppLayout } from './components/Navigation';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
-import Loan from './pages/Loan';
 import Chatbot from './components/Chatbot/Chatbot';
-import Dashboard from './pages/Dashboard';
 import Profile_Apply from './pages/Profile_Apply';
 import FinancialRecords from './pages/FinancialRecords';
 
@@ -69,6 +68,16 @@ function App() {
                 position: 'relative',
                 zIndex: 2,
               }}>
+                <img 
+                  src="/logo.png"
+                  alt="FundSight AI Logo"
+                  style={{
+                    height: '36px',
+                    width: 'auto',
+                    marginLeft: '28px',
+                    marginRight: '-18px'
+                  }}
+                />
                 <Typography
                   variant="h5"
                   component={Link}
@@ -86,6 +95,14 @@ function App() {
                     backgroundClip: 'text',
                     color: 'transparent',
                     whiteSpace: 'nowrap',
+                    transition: 'all 0.3s ease',
+                    '&:hover': {
+                      background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
+                      WebkitBackgroundClip: 'text',
+                      WebkitTextFillColor: 'transparent',
+                      backgroundClip: 'text',
+                      transform: 'translateY(-1px)',
+                    }
                   }}
                 >
                   FundSight AI
@@ -130,7 +147,7 @@ function App() {
                 <Button
                   color="inherit"
                   component={Link}
-                  to="/loan"
+                  to="/financial_records"
                   sx={{
                     fontWeight: 500,
                     fontSize: '1rem',
@@ -151,12 +168,12 @@ function App() {
                     },
                   }}
                 >
-                  Loan
+                  Financial Records
                 </Button>
                 <Button
                   color="inherit"
                   component={Link}
-                  to="/profile"
+                  to="/profile_apply"
                   sx={{
                     fontWeight: 500,
                     fontSize: '1rem',
@@ -177,7 +194,7 @@ function App() {
                     },
                   }}
                 >
-                  Profile
+                  Profile & Apply
                 </Button>
               </Box>
 
@@ -265,7 +282,7 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/financial-records" element={<FinancialRecords />} />
+                <Route path="/financial_records" element={<FinancialRecords />} />
                 <Route path="/profile_apply" element={<Profile_Apply />} />
               </Routes>
             </Container>
@@ -397,7 +414,7 @@ function App() {
                 bottom: 0,
                 zIndex: 1000,
               }}
-              onMouseDown={handleMouseDown}
+              onMouseDown={handleDrawerMouseDown}
             />
             <Chatbot onClose={handleChatbotClose} />
           </Drawer>
