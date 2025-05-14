@@ -119,16 +119,16 @@ const Home: React.FC = () => {
           gap: 6,
         }}>
           <Box sx={{ flex: 1, minWidth: 0 }}>
-            <Typography
+        <Typography 
               variant="h1"
-              sx={{
+          sx={{ 
                 fontSize: { xs: '2rem', sm: '3.3rem', md: '4rem' },
-                fontWeight: 800,
+            fontWeight: 800,
                 mb: 3,
                 mt: { xs: 2, md: 0 },
                 background: `linear-gradient(135deg, #ca90c3 0%, #3d83c1 100%)`,
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
                 textShadow: '0 2px 16px rgba(49, 112, 171, 0.25)',
               }}
             >
@@ -139,9 +139,9 @@ const Home: React.FC = () => {
                 WebkitTextFillColor: 'transparent',
                 textShadow: '0 2px 16px rgba(202, 144, 195, 0.25)',
               }}>AI Financial Guidance</Box>
-            </Typography>
-            <Typography
-              variant="h5"
+        </Typography>
+        <Typography 
+          variant="h5" 
               sx={{
                 color: 'rgba(255,255,255,0.92)',
                 fontWeight: 300,
@@ -250,7 +250,7 @@ const Home: React.FC = () => {
                   </Typography>
                   <Button
                     variant="contained"
-                    onClick={card.onClick}
+                onClick={card.onClick}
                     sx={{
                       borderRadius: '12px',
                       py: 1.5,

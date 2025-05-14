@@ -7,7 +7,7 @@ import {
   INDUSTRIES, 
   TAX_STATUSES,
   formatCurrency 
-} from './types';
+} from '../../components/types';
 
 interface CompanyProfileSectionProps {
   profile: CompanyProfile;
