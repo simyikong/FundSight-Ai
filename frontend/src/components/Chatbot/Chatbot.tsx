@@ -198,7 +198,7 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             sx={{
               py: 0.5,  
               px: 2,    
-              borderRadius: 3,
+              borderRadius: 1,
               background: message.role === 'user' 
                 ? 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)'
                 : 'linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.1) 100%)',
@@ -280,18 +280,20 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       height: '100%', 
       display: 'flex', 
       flexDirection: 'column',
-      background: 'linear-gradient(135deg, #0F172A 0%, #312E81 100%)',
+      background: 'linear-gradient(135deg,rgb(25, 21, 54) 10%, #312E81 100%)',
       borderRadius: '0px',
+      boxShadow: '0 -10px 20px rgba(187, 157, 242, 0.53)',
       backdropFilter: 'blur(10px)',
-      border: '1px solid rgba(255, 255, 255, 0.1)',
+      border: '1px solid rgba(255, 255, 255, 0.04)',
     }}>
       <Box sx={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
-        p: 2, 
+        p: 2.2, 
         borderBottom: '1px solid rgba(255,255,255,0.1)',
-        background: 'rgba(255,255,255,0.05)',
+        background: 'rgba(11, 7, 44, 0.95)',
+        boxShadow: '0px 20px 60px 0px rgba(131, 141, 249, 0.20)',
         backdropFilter: 'blur(5px)',
       }}>
         <IconButton onClick={handleClose} size="small" sx={{ 
@@ -309,12 +311,26 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
         <Typography variant="h6" sx={{ 
           fontWeight: 700,
-          background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
-          backgroundClip: 'text',
-          WebkitBackgroundClip: 'text',
-          color: 'transparent',
           letterSpacing: '0.5px',
+          fontSize: '1.35rem',
+          background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text',
+          color: 'transparent',
           textShadow: '0 2px 10px rgba(224, 195, 252, 0.2)',
+          position: 'relative',
+          '&::before': {
+            content: '""',
+            position: 'absolute',
+            top: '-10px',
+            left: '-50px',
+            right: '-50px',
+            bottom: '-10px',
+            background: 'linear-gradient(90deg, transparent, rgba(224, 195, 252, 0.15) 30%, rgba(224, 195, 252, 0.15) 70%, transparent)',
+            filter: 'blur(8px)',
+            zIndex: -1,
+          }
         }}>AI Assistant</Typography>
 
         <IconButton 
