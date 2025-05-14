@@ -6,6 +6,7 @@ import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import ForumIcon from '@mui/icons-material/Forum';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 
 const Home: React.FC = () => {
   const theme = useTheme();

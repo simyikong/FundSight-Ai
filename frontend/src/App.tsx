@@ -6,15 +6,24 @@ import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import Loan from './pages/Loan';
 import Chatbot from './components/Chatbot/Chatbot';
+import Dashboard from './pages/Dashboard';
+import Profile_Apply from './pages/Profile_Apply';
+import FinancialRecords from './pages/FinancialRecords';
 
+/**
+ * Main App component.
+ * Handles app-wide state and renders the main application structure.
+ */
 function App() {
   const [chatbotOpen, setChatbotOpen] = useState(false);
   const [drawerWidth, setDrawerWidth] = useState(350);
 
+  // Event handlers
   const handleChatbotOpen = () => setChatbotOpen(true);
   const handleChatbotClose = () => setChatbotOpen(false);
 
-  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+  // Handle drawer resize functionality
+  const handleDrawerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const startX = e.clientX;
     const startWidth = drawerWidth;
     const doDrag = (e: MouseEvent) => {
@@ -256,7 +265,8 @@ function App() {
               <Routes>
                 <Route path="/" element={<Home />} />
                 <Route path="/dashboard" element={<Dashboard />} />
-                <Route path="/loan" element={<Loan />} />
+                <Route path="/financial-records" element={<FinancialRecords />} />
+                <Route path="/profile_apply" element={<Profile_Apply />} />
               </Routes>
             </Container>
             
