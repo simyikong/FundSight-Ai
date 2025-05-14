@@ -1,137 +1,193 @@
 import { createTheme, responsiveFontSizes } from '@mui/material/styles';
 
-// Define primary and secondary colors
 const primary = {
-  main: '#4A6FE9',
-  light: '#6D8CFA',
-  dark: '#2F55CC',
+  main: '#8EC5FC',
+  light: '#A78BFA',
+  dark: '#23263a',
   contrastText: '#FFFFFF',
 };
 
 const secondary = {
-  main: '#5E35B1',
-  light: '#7E57C2',
-  dark: '#4527A0',
+  main: '#A78BFA',
+  light: '#C3BFFA',
+  dark: '#6D28D9',
   contrastText: '#FFFFFF',
 };
 
-// Create theme
-let theme = createTheme({
-  palette: {
-    mode: 'light',
-    primary,
-    secondary,
-    background: {
-      default: '#F7F9FC',
-      paper: '#FFFFFF',
-    },
-    text: {
-      primary: '#121212',
-      secondary: '#5A6A85',
-    },
-  },
-  typography: {
-    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h1: {
-      fontWeight: 700,
-    },
-    h2: {
-      fontWeight: 700,
-    },
-    h3: {
-      fontWeight: 600,
-    },
-    h4: {
-      fontWeight: 600,
-    },
-    h5: {
-      fontWeight: 600,
-    },
-    h6: {
-      fontWeight: 600,
-    },
-    button: {
-      textTransform: 'none',
-      fontWeight: 600,
-    },
-  },
-  shape: {
-    borderRadius: 8,
-  },
-  components: {
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          boxShadow: 'none',
-          '&:hover': {
-            boxShadow: '0px 4px 8px rgba(74, 111, 233, 0.2)',
-          },
-        },
-        contained: {
-          '&:hover': {
-            boxShadow: '0px 6px 10px rgba(74, 111, 233, 0.3)',
-          },
-        },
-      },
-    },
-    MuiCard: {
-      styleOverrides: {
-        root: {
-          boxShadow: '0px 5px 15px rgba(0, 0, 0, 0.05)',
-          borderRadius: 16,
-        },
-      },
-    },
-    MuiAppBar: {
-      styleOverrides: {
-        root: {
-          boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.08)',
-        },
-      },
-    },
-  },
-});
+const backgroundGradient = 'rgb(5, 3, 24) 0%,rgb(21, 27, 58) 100%)';
+const glassBg = 'rgba(7, 7, 27, 0.92)';
+const glassBorder = '1px solid rgba(255,255,255,0.08)';
 
-// Create dark theme
-const darkTheme = createTheme({
-  ...theme,
+let theme = createTheme({
   palette: {
     mode: 'dark',
     primary,
     secondary,
     background: {
-      default: '#121212',
-      paper: '#1E1E1E',
+      default: '#0A0A23',
+      paper: glassBg,
     },
     text: {
-      primary: '#FFFFFF',
+      primary: '#fff',
       secondary: '#B0B7C3',
     },
+    divider: 'rgba(255,255,255,0.08)',
+  },
+  typography: {
+    fontFamily: 'Inter, "Roboto", "Helvetica", "Arial", sans-serif',
+    h1: {
+      fontWeight: 800,
+      fontSize: '3rem',
+      letterSpacing: 1,
+      background: 'linear-gradient(135deg, #A78BFA 0%, #8EC5FC 100%)',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+    },
+    h2: {
+      fontWeight: 700,
+      fontSize: '2.25rem',
+      background: 'linear-gradient(135deg, #A78BFA 0%, #8EC5FC 100%)',
+      WebkitBackgroundClip: 'text',
+      WebkitTextFillColor: 'transparent',
+    },
+    h3: {
+      fontWeight: 700,
+      fontSize: '1.75rem',
+      color: '#fff',
+    },
+    h4: {
+      fontWeight: 600,
+      fontSize: '1.5rem',
+      color: '#fff',
+    },
+    h5: {
+      fontWeight: 600,
+      fontSize: '1.25rem',
+      color: '#fff',
+    },
+    h6: {
+      fontWeight: 600,
+      fontSize: '1.1rem',
+      color: '#fff',
+    },
+    button: {
+      textTransform: 'none',
+      fontWeight: 700,
+      fontSize: '1rem',
+    },
+  },
+  shape: {
+    borderRadius: 18,
   },
   components: {
-    ...theme.components,
-    MuiCard: {
+    MuiCssBaseline: {
       styleOverrides: {
-        root: {
-          backgroundColor: '#1E1E1E',
-          boxShadow: '0px 5px 15px rgba(0, 0, 0, 0.2)',
-          borderRadius: 16,
+        body: {
+          background: backgroundGradient,
+          minHeight: '100vh',
         },
       },
     },
     MuiAppBar: {
       styleOverrides: {
         root: {
-          backgroundColor: 'rgba(30, 30, 30, 0.95)',
-          boxShadow: '0px 2px 10px rgba(0, 0, 0, 0.2)',
+          background: 'rgba(30, 27, 60, 0.95)',
+          boxShadow: '0px 2px 20px 0px rgba(130, 100, 255, 0.10)',
+          minHeight: 72,
+        },
+      },
+    },
+    MuiDrawer: {
+      styleOverrides: {
+        paper: {
+          background: glassBg,
+          borderLeft: glassBorder,
+          boxShadow: '-4px 0 25px rgba(130, 100, 255, 0.10)',
+        },
+      },
+    },
+    MuiPaper: {
+      styleOverrides: {
+        root: {
+          background: glassBg,
+          border: glassBorder,
+          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.10)',
+          backdropFilter: 'blur(12px)',
+        },
+      },
+    },
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          background: 'rgba(30, 27, 60, 0.85)',
+          border: glassBorder,
+          boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.10)',
+          backdropFilter: 'blur(12px)',
+          borderRadius: 16,
+        },
+      },
+    },
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          borderRadius: 12,
+          fontWeight: 600,
+          fontSize: '1rem',
+          boxShadow: 'none',
+          color: '#fff',
+          transition: 'all 0.2s',
+          '&:hover': {
+            background: 'linear-gradient(135deg, #ca90c3 0%, #3d83c1 100%)',
+            color: '#fff',
+            boxShadow: '0 4px 20px rgba(61, 131, 193, 0.25)',
+            transform: 'translateY(-2px)',
+          },
+        },
+        contained: {
+          // background: 'linear-gradient(135deg,rgb(218, 185, 250) 0%, #8EC5FC 100%)',
+          background: '#3f3d58',
+          color: '#13111C',
+          '&:hover': {
+            background: 'linear-gradient(135deg,rgb(223, 160, 225) 0%,rgb(67, 129, 221) 100%)',
+            color: '#fff',
+            boxShadow: '0 4px 20px rgba(61, 131, 193, 0.25)',
+          },
+        },
+        outlined: {
+          borderColor: '#3d83c1',
+          color: '#3d83c1',
+          '&:hover': {
+            borderColor: '#6d96c5',
+            background: 'rgba(202, 144, 195, 0.08)',
+            color: '#6d96c5',
+          },
+        },
+      },
+    },
+    MuiTextField: {
+      styleOverrides: {
+        root: {
+          background: 'rgba(255,255,255,0.03)',
+          borderRadius: 12,
+          input: {
+            color: '#fff',
+          },
+        },
+      },
+    },
+    MuiInputBase: {
+      styleOverrides: {
+        root: {
+          color: '#fff',
+        },
+        input: {
+          color: '#fff',
         },
       },
     },
   },
 });
 
-// Apply responsive font sizes
-theme = responsiveFontSizes(theme);
-const responsiveDarkTheme = responsiveFontSizes(darkTheme);
+const responsiveDarkTheme = responsiveFontSizes(theme);
 
-export { theme, responsiveDarkTheme }; 
+export { responsiveDarkTheme as theme };

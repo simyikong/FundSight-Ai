@@ -1,12 +1,13 @@
 import React, { useState, useMemo } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { ThemeProvider, CssBaseline } from '@mui/material';
-import { theme, responsiveDarkTheme } from './theme';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import { ThemeProvider, CssBaseline, AppBar, Toolbar, Typography, Button, Box, Container, Drawer, IconButton, Grid, Stack } from '@mui/material';
+import { theme } from './theme';
 import { AppLayout } from './components/Navigation';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import CompanyProfile from './pages/CompanyProfile';
 import FundingRecommendations from './pages/FundingRecommendations';
+import Chatbot from './components/Chatbot/Chatbot';
 import FinancialRecords from './pages/FinancialRecords';
 
 /**
@@ -23,33 +24,24 @@ function App() {
   const handleChatbotClose = () => setChatbotOpen(false);
   const toggleTheme = () => setDarkMode(!darkMode);
 
-  // Theme selection based on dark mode setting
-  const currentTheme = useMemo(() => 
-    darkMode ? responsiveDarkTheme : theme, 
-    [darkMode]
-  );
-
   // Handle drawer resize functionality
   const handleDrawerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
     const startX = e.clientX;
     const startWidth = drawerWidth;
-
     const doDrag = (e: MouseEvent) => {
       const newWidth = startWidth - (e.clientX - startX);
-      setDrawerWidth(Math.max(350, Math.min(newWidth, 500))); // Limit width between 350 and 500
+      setDrawerWidth(Math.max(350, Math.min(newWidth, 500)));
     };
-
     const stopDrag = () => {
       document.removeEventListener('mousemove', doDrag);
       document.removeEventListener('mouseup', stopDrag);
     };
-
     document.addEventListener('mousemove', doDrag);
     document.addEventListener('mouseup', stopDrag);
   };
 
   return (
-    <ThemeProvider theme={currentTheme}>
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <Router>
         <AppLayout
