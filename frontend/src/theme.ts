@@ -123,18 +123,17 @@ let theme = createTheme({
           border: glassBorder,
           boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.10)',
           backdropFilter: 'blur(12px)',
-          borderRadius: 24,
+          borderRadius: 16,
         },
       },
     },
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 28,
-          fontWeight: 700,
+          borderRadius: 12,
+          fontWeight: 600,
           fontSize: '1rem',
           boxShadow: 'none',
-          background: '#2a296e',
           color: '#fff',
           transition: 'all 0.2s',
           '&:hover': {
@@ -145,7 +144,8 @@ let theme = createTheme({
           },
         },
         contained: {
-          background: 'linear-gradient(135deg,rgb(218, 185, 250) 0%, #8EC5FC 100%)',
+          // background: 'linear-gradient(135deg,rgb(218, 185, 250) 0%, #8EC5FC 100%)',
+          background: '#3f3d58',
           color: '#13111C',
           '&:hover': {
             background: 'linear-gradient(135deg,rgb(223, 160, 225) 0%,rgb(67, 129, 221) 100%)',
@@ -157,9 +157,9 @@ let theme = createTheme({
           borderColor: '#3d83c1',
           color: '#3d83c1',
           '&:hover': {
-            borderColor: '#b590ca',
+            borderColor: '#6d96c5',
             background: 'rgba(202, 144, 195, 0.08)',
-            color: '#b590ca',
+            color: '#6d96c5',
           },
         },
       },

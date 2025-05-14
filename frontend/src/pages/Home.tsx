@@ -132,7 +132,7 @@ const Home: React.FC = () => {
               Get tailored insights, budgeting tools, and loan advice—just for your business.
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, mt: 2 }}>
-              <Button variant="contained" size="large" sx={{ borderRadius: 3, fontWeight: 700, fontSize: '1.1rem', px: 4, py: 1.5 }}>Get Started</Button>
+              <Button variant="contained" size="large" sx={{ borderRadius: 3, fontWeight: 700, background: 'linear-gradient(135deg,rgb(218, 185, 250) 0%, #8EC5FC 100%)', fontSize: '1.1rem', px: 4, py: 1.5 }}>Get Started</Button>
               <Button variant="outlined" size="large" sx={{ borderRadius: 3, fontWeight: 700, fontSize: '1.1rem', px: 4, py: 1.5, color: '#8EC5FC', borderColor: '#8EC5FC', background: 'rgba(142,197,252,0.08)', '&:hover': { background: 'rgba(142,197,252,0.15)' } }}>Learn More</Button>
             </Box>
           </Box>
