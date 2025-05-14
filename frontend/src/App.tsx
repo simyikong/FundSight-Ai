@@ -1,13 +1,12 @@
-import React, { useState, useMemo } from 'react';
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import { ThemeProvider, CssBaseline, AppBar, Toolbar, Typography, Button, Box, Container, Drawer, IconButton, Grid, Stack } from '@mui/material';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ThemeProvider, CssBaseline } from '@mui/material';
 import { theme } from './theme';
 import { AppLayout } from './components/Navigation';
 import Home from './pages/Home';
 import Dashboard from './pages/Dashboard';
 import CompanyProfile from './pages/CompanyProfile';
 import FundingRecommendations from './pages/FundingRecommendations';
-import Chatbot from './components/Chatbot/Chatbot';
 import FinancialRecords from './pages/FinancialRecords';
 
 /**
@@ -17,12 +16,10 @@ import FinancialRecords from './pages/FinancialRecords';
 function App() {
   const [chatbotOpen, setChatbotOpen] = useState(false);
   const [drawerWidth, setDrawerWidth] = useState(350);
-  const [darkMode, setDarkMode] = useState(false);
 
   // Event handlers
   const handleChatbotOpen = () => setChatbotOpen(true);
   const handleChatbotClose = () => setChatbotOpen(false);
-  const toggleTheme = () => setDarkMode(!darkMode);
 
   // Handle drawer resize functionality
   const handleDrawerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -47,8 +44,6 @@ function App() {
         <AppLayout
           chatbotOpen={chatbotOpen}
           drawerWidth={drawerWidth}
-          darkMode={darkMode}
-          toggleTheme={toggleTheme}
           handleChatbotOpen={handleChatbotOpen}
           handleChatbotClose={handleChatbotClose}
           handleDrawerMouseDown={handleDrawerMouseDown}

@@ -1,21 +1,17 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Box, Button, IconButton } from '@mui/material';
+import { AppBar, Toolbar, Typography, Box, Button } from '@mui/material';
 import { Link } from 'react-router-dom';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
 import NavigationBar from './NavigationBar';
 
 interface HeaderProps {
-  darkMode: boolean;
-  toggleTheme: () => void;
   handleChatbotOpen: () => void;
 }
 
 /**
  * Header component for the application.
- * Contains the app bar, navigation, theme toggle, and AI assistant button.
+ * Contains the app bar, navigation, and AI assistant button.
  */
-const Header: React.FC<HeaderProps> = ({ darkMode, toggleTheme, handleChatbotOpen }) => {
+const Header: React.FC<HeaderProps> = ({ handleChatbotOpen }) => {
   return (
     <AppBar position="fixed" elevation={0}>
       <Toolbar sx={{ minHeight: 70, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -43,9 +39,6 @@ const Header: React.FC<HeaderProps> = ({ darkMode, toggleTheme, handleChatbotOpe
         
         {/* Right Side Controls */}
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <IconButton color="inherit" onClick={toggleTheme} sx={{ mr: 1 }}>
-            {darkMode ? <Brightness7Icon /> : <Brightness4Icon />}
-          </IconButton>
           <Button
             variant="contained"
             onClick={handleChatbotOpen}
