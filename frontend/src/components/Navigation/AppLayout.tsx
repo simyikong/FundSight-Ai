@@ -6,8 +6,6 @@ interface AppLayoutProps {
   children: ReactNode;
   chatbotOpen: boolean;
   drawerWidth: number;
-  darkMode: boolean;
-  toggleTheme: () => void;
   handleChatbotOpen: () => void;
   handleChatbotClose: () => void;
   handleDrawerMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void;
@@ -21,8 +19,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   children,
   chatbotOpen,
   drawerWidth,
-  darkMode,
-  toggleTheme,
   handleChatbotOpen,
   handleChatbotClose,
   handleDrawerMouseDown
@@ -30,8 +26,6 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   return (
     <>
       <Header 
-        darkMode={darkMode}
-        toggleTheme={toggleTheme}
         handleChatbotOpen={handleChatbotOpen}
       />
       <Container 

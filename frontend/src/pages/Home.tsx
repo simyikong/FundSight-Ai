@@ -2,8 +2,10 @@ import React from 'react';
 import { Box, Typography, Grid, useTheme, Button, } from '@mui/material';
 import { FeatureCard } from '../components/Layout';
 import BarChartIcon from '@mui/icons-material/BarChart';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import BusinessIcon from '@mui/icons-material/Business';
+import CreditScoreIcon from '@mui/icons-material/CreditScore';
 import ForumIcon from '@mui/icons-material/Forum';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import AssessmentIcon from '@mui/icons-material/Assessment';
@@ -28,13 +30,33 @@ const Home: React.FC = () => {
       title: "Loan Recommendations",
       description: "Get personalized loan options based on your business profile.",
       buttonText: "Find Loans",
-      buttonLink: "/loan",
+      buttonLink: "/funding-recommendations",
       buttonColor: "primary",
       iconBgColor: "rgba(79, 70, 229, 0.1)",
-      onClick: () => navigate('/loan')
+      onClick: () => navigate('/funding-recommendations')
     },
     {
-      icon: <ForumIcon />,
+      icon: <BusinessIcon fontSize="large" />,
+      title: "Company Profile",
+      description: "Complete your company profile and upload the necessary business documents.",
+      buttonText: "View Profile",
+      buttonLink: "/company-profile",
+      buttonColor: "secondary" as const,
+      iconBgColor: "secondary.main",
+      onClick: () => navigate('/company-profile')
+    },
+    {
+      icon: <AssessmentIcon fontSize="large" />,
+      title: "Financial Records",
+      description: "Manage your monthly financial documents and extract data for analytics.",
+      buttonText: "View Records",
+      buttonLink: "/financial-records",
+      buttonColor: "success" as const,
+      iconBgColor: "success.main",
+      onClick: () => navigate('/financial-records')
+    },
+    {
+      icon: <ForumIcon fontSize="large" />,
       title: "AI Assistant",
       description: "Get instant financial advice and answers to your business questions.",
       buttonText: "Chat with AI",

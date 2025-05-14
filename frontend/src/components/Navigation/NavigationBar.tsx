@@ -24,7 +24,8 @@ const navButtonStyle = {
 const navItems: NavItem[] = [
   { path: '/dashboard', label: 'Dashboard' },
   { path: '/financial-records', label: 'Financial Records' },
-  { path: '/profile_apply', label: 'Profile & Apply' }
+  { path: '/company-profile', label: 'Company Profile' },
+  { path: '/funding-recommendations', label: 'Funding' }
 ];
 
 /**
