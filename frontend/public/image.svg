@@ -1,0 +1,53 @@
+<svg viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="circleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8878e8" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#6457b5" stop-opacity="0.5"/>
+    </linearGradient>
+    <linearGradient id="barGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#a799ff"/>
+      <stop offset="100%" stop-color="#8878e8"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Main circle -->
+  <circle cx="250" cy="250" r="240" fill="url(#circleGradient)" stroke="#a799ff" stroke-width="2" />
+  
+  <!-- Bar chart -->
+  <rect x="100" y="300" width="40" height="80" rx="5" fill="url(#barGradient)" />
+  <rect x="160" y="260" width="40" height="120" rx="5" fill="url(#barGradient)" />
+  <rect x="220" y="220" width="40" height="160" rx="5" fill="url(#barGradient)" />
+  <rect x="280" y="180" width="40" height="200" rx="5" fill="url(#barGradient)" />
+  <rect x="340" y="140" width="40" height="240" rx="5" fill="url(#barGradient)" />
+  
+  <!-- Line chart overlay -->
+  <path d="M100 240 L160 200 L220 260 L280 180 L340 120" fill="none" stroke="#ffffff" stroke-width="3" stroke-linecap="round" />
+  <circle cx="100" cy="240" r="6" fill="#ffffff" />
+  <circle cx="160" cy="200" r="6" fill="#ffffff" />
+  <circle cx="220" cy="260" r="6" fill="#ffffff" />
+  <circle cx="280" cy="180" r="6" fill="#ffffff" />
+  <circle cx="340" cy="120" r="6" fill="#ffffff" />
+  
+  <!-- Circuit-like AI elements -->
+  <path d="M70 330 L80 330 L90 340 L160 340 L170 330 L340 330" fill="none" stroke="#a799ff" stroke-width="2" />
+  <path d="M120 160 L140 160 L150 170 L300 170 L310 160 L380 160" fill="none" stroke="#a799ff" stroke-width="2" />
+  <path d="M160 120 L180 120 L190 130 L280 130 L290 120 L420 120" fill="none" stroke="#a799ff" stroke-width="2" />
+  
+  <!-- Nodes -->
+  <circle cx="90" cy="340" r="4" fill="#ffffff" />
+  <circle cx="170" cy="330" r="4" fill="#ffffff" />
+  <circle cx="150" cy="170" r="4" fill="#ffffff" />
+  <circle cx="310" cy="160" r="4" fill="#ffffff" />
+  <circle cx="190" cy="130" r="4" fill="#ffffff" />
+  <circle cx="290" cy="120" r="4" fill="#ffffff" />
+  
+  <!-- Coin elements -->
+  <circle cx="420" cy="260" r="35" fill="#6457b5" stroke="#a799ff" stroke-width="2" />
+  <circle cx="420" cy="260" r="28" fill="none" stroke="#a799ff" stroke-width="2" />
+  <text x="420" cy="260" fill="#ffffff" font-family="Arial" font-size="20" text-anchor="middle" dominant-baseline="middle">RM</text>
+  
+  <circle cx="380" cy="300" r="25" fill="#6457b5" stroke="#a799ff" stroke-width="2" />
+  <circle cx="380" cy="300" r="19" fill="none" stroke="#a799ff" stroke-width="2" />
+  <text x="380" cy="300" fill="#ffffff" font-family="Arial" font-size="16" text-anchor="middle" dominant-baseline="middle">$</text>
+</svg>

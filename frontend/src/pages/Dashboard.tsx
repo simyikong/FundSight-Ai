@@ -189,7 +189,7 @@ const Dashboard: React.FC = () => {
   const healthScoreColors = ['#4CAF50', '#23263a'];
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4, bgcolor: '#11131a', minHeight: '100vh', borderRadius: 3, p: 3 }}>
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4, minHeight: '100vh', borderRadius: 3, p: 3 }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
         <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#2196F3' }}>
