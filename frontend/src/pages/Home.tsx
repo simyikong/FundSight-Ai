@@ -4,6 +4,7 @@ import { FeatureCard } from '../components/Layout';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import ForumIcon from '@mui/icons-material/Forum';
+import AssessmentIcon from '@mui/icons-material/Assessment';
 
 const Home: React.FC = () => {
   const theme = useTheme();
@@ -30,11 +31,20 @@ const Home: React.FC = () => {
       iconBgColor: "primary.light"
     },
     {
+      icon: <AssessmentIcon fontSize="large" />,
+      title: "Financial Records",
+      description: "Organize and manage your monthly financial documents and statements.",
+      buttonText: "Manage Records",
+      buttonLink: "/financial-records",
+      buttonColor: "success" as const,
+      iconBgColor: "success.light"
+    },
+    {
       icon: <AccountBalanceIcon fontSize="large" />,
-      title: "Loan Recommendations",
-      description: "Get personalized loan options based on your business profile.",
-      buttonText: "Find Loans",
-      buttonLink: "/loan",
+      title: "Company Profile & Apply",
+      description: "Complete your company profile and get personalized funding recommendations.",
+      buttonText: "Get Started",
+      buttonLink: "/profile_apply",
       buttonColor: "secondary" as const,
       iconBgColor: "secondary.main"
     },
