@@ -1,17 +1,18 @@
 import React from 'react';
-import { Box, Typography, Grid, useTheme, Button, } from '@mui/material';
-import { FeatureCard } from '../components/Layout';
+import { Box, Typography, Grid, Button, } from '@mui/material';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import BusinessIcon from '@mui/icons-material/Business';
-import CreditScoreIcon from '@mui/icons-material/CreditScore';
 import ForumIcon from '@mui/icons-material/Forum';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import AssessmentIcon from '@mui/icons-material/Assessment';
 
-const Home: React.FC = () => {
-  const theme = useTheme();
+interface HomeProps {
+  chatbotOpen?: boolean;
+}
+
+const Home: React.FC<HomeProps> = ({ chatbotOpen = false }) => {
   const navigate = useNavigate();
 
   const featureCards = [
@@ -48,7 +49,7 @@ const Home: React.FC = () => {
     {
       icon: <AssessmentIcon fontSize="large" />,
       title: "Financial Records",
-      description: "Manage your monthly financial documents and extract data for analytics.",
+      description: "Manage monthly financial documents and extract data for analytics.",
       buttonText: "View Records",
       buttonLink: "/financial-records",
       buttonColor: "success" as const,
@@ -67,7 +68,7 @@ const Home: React.FC = () => {
   ];
 
   return (
-    <Box sx={{ 
+    <Box sx={{
       minHeight: '100vh',
       display: 'flex',
       flexDirection: 'column',
@@ -112,36 +113,38 @@ const Home: React.FC = () => {
           flexDirection: { xs: 'column', md: 'row' },
           alignItems: 'center',
           justifyContent: 'space-between',
-          px: { xs: 2, sm: 4, md: 8 },
-          pt: { xs: 2, md: 4 }, // Reduced top padding
+          transition: 'all 0.3s ease',
+          pl: chatbotOpen ? { xs: 2, sm: 3, md: 4 } : { xs: 4, sm: 6, md: 18 },
+          pr: chatbotOpen? { xs: 2, sm: 3, md: 8 } : { xs: 4, sm: 6, md: 18 },
+          pt: { xs: 2, md: 0 },
           pb: { xs: 4, md: 10 },
           zIndex: 1,
           gap: 6,
         }}>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography 
+          <Box sx={{ flex: 1, minWidth: 0, maxWidth: '490px' }}>
+            <Typography
               variant="h1"
-          sx={{ 
+              sx={{
                 fontSize: { xs: '2rem', sm: '3.3rem', md: '4rem' },
-            fontWeight: 800,
+                fontWeight: 800,
                 mb: 3,
                 mt: { xs: 2, md: 0 },
                 background: `linear-gradient(135deg, #ca90c3 0%, #3d83c1 100%)`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
                 textShadow: '0 2px 16px rgba(49, 112, 171, 0.25)',
               }}
             >
-              Empowering MSMEs with <br /> <Box component="span" sx={{ 
+              Empowering MSMEs with <br /> <Box component="span" sx={{
                 fontWeight: 800,
                 background: `linear-gradient(135deg, #3d83c1 0%, #69c4e9 100%)`,
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 textShadow: '0 2px 16px rgba(202, 144, 195, 0.25)',
               }}>AI Financial Guidance</Box>
-        </Typography>
-        <Typography 
-          variant="h5" 
+            </Typography>
+            <Typography
+              variant="h5"
               sx={{
                 color: 'rgba(255,255,255,0.92)',
                 fontWeight: 300,
@@ -158,25 +161,25 @@ const Home: React.FC = () => {
               <Button variant="outlined" size="large" sx={{ borderRadius: 3, fontWeight: 700, fontSize: '1.1rem', px: 4, py: 1.5, color: '#8EC5FC', borderColor: '#8EC5FC', background: 'rgba(142,197,252,0.08)', '&:hover': { background: 'rgba(142,197,252,0.15)' } }}>Learn More</Button>
             </Box>
           </Box>
-          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', minWidth: 0 }}>
-            <Box sx={{ 
-              width: { xs: '100%', sm: '100%', md: '600px' }, 
-              height: { xs: '600px', sm: '600px', md: '600px' }, 
-              borderRadius: '50%', 
-              display: 'flex', 
-              alignItems: 'center', 
+          <Box sx={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', minWidth: 0, maxWidth: '550px' }}>
+            <Box sx={{
+              width: { xs: '100%', sm: '100%', md: '580px' },
+              height: { xs: '600px', sm: '580px', md: '580px' },
+              borderRadius: '50%',
+              display: 'flex',
+              alignItems: 'center',
               justifyContent: 'center',
               transition: 'transform 0.3s ease',
             }}>
-              <img 
-                src="/landing_page.png" 
-                alt="Landing page image" 
-                style={{ 
-                  width: '100%', 
-                  height: '100%', 
-                  objectFit: 'contain', 
+              <img
+                src="/landing_page.png"
+                alt="Landing page image"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain',
                   filter: 'drop-shadow(0 0 32px #8EC5FC88)',
-                }} 
+                }}
               />
             </Box>
           </Box>
@@ -250,7 +253,7 @@ const Home: React.FC = () => {
                   </Typography>
                   <Button
                     variant="contained"
-                onClick={card.onClick}
+                    onClick={card.onClick}
                     sx={{
                       borderRadius: '12px',
                       py: 1.5,
@@ -294,12 +297,12 @@ const Home: React.FC = () => {
         <Grid container spacing={6} justifyContent="center">
           {[
             {
-              title: 'Connect Your Business Data',
+              title: 'Connect Business Data',
               description: 'Securely link your accounting, banking, and business data sources for real-time insights.'
             },
             {
               title: 'AI-Powered Analysis',
-              description: 'Our AI analyzes your financials, spending, and cash flow to provide actionable recommendations.'
+              description: 'Assess your finances and cash flow with AI-driven analysis and recommendations.'
             },
             {
               title: 'Personalized Guidance',

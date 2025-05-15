@@ -47,7 +47,7 @@ const NavButton: React.FC<{ item: NavItem; onClick: (path: string) => void }> = 
  */
 const NavigationBar = () => {
   const navigate = useNavigate();
-  
+
   return (
     <Box sx={{ display: 'flex', gap: 3 }}>
       {navItems.map((item) => (
