@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { 
   Box, 
   Typography, 
@@ -33,8 +33,10 @@ import {
   CheckCircle as CheckCircleIcon,
   AccessTime as AccessTimeIcon,
   CalendarMonth as CalendarMonthIcon,
-  Add as AddIcon
+  Add as AddIcon,
+  Warning as WarningIcon
 } from '@mui/icons-material';
+import { documentsApi } from '../../services';
 
 // Months for selection
 const MONTHS = [
@@ -46,72 +48,145 @@ const MONTHS = [
 const YEARS = Array.from({ length: 6 }, (_, i) => new Date().getFullYear() - 2 + i);
 
 interface DocumentTag {
-  month: string;
-  year: number;
+  tag: string;
+  value: string;
+  year?: number;
+  month?: number;
 }
 
 interface ProcessedDocument {
-  id: string;
-  file: File;
-  fileName: string;
+  id: string | number;
+  file?: File;
+  filename: string;
   uploadDate: Date;
   tags: DocumentTag[];
-  processingStatus: 'uploading' | 'analyzing' | 'complete' | 'error';
-  extractionStatus?: 'pending' | 'complete' | 'error';
-  aiConfidence?: number; // 0-100
-  addedToRecords?: boolean; // Track if document has been added to monthly records
+  status: 'uploading' | 'analyzing' | 'complete' | 'error';
+  ai_confidence?: number | null;
+  addedToRecords?: boolean;
 }
 
-const BulkUploadSection: React.FC = () => {
+interface BulkUploadSectionProps {
+  onDocumentsAddedToRecords?: (documents: { id: string | number, year?: number, month?: number }[]) => void;
+}
+
+const BulkUploadSection: React.FC<BulkUploadSectionProps> = ({ onDocumentsAddedToRecords }) => {
   const [documents, setDocuments] = useState<ProcessedDocument[]>([]);
   const [editingDocument, setEditingDocument] = useState<ProcessedDocument | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  // Load recent documents on component mount
+  useEffect(() => {
+    const fetchRecentDocuments = async () => {
+      try {
+        setLoading(true);
+        const recentDocs = await documentsApi.getRecentDocuments();
+        
+        // Convert API response to our document format
+        const formattedDocs: ProcessedDocument[] = recentDocs.map((doc: any) => ({
+          id: doc.id,
+          filename: doc.filename,
+          uploadDate: new Date(doc.upload_date),
+          tags: doc.tags || [],
+          status: doc.status,
+          ai_confidence: doc.ai_confidence,
+          addedToRecords: doc.tags?.some((tag: DocumentTag) => tag.tag === 'status' && tag.value === 'added_to_records')
+        }));
+        
+        setDocuments(formattedDocs);
+      } catch (error) {
+        console.error('Error fetching recent documents:', error);
+        setSnackbarMessage('Failed to load recent documents');
+        setSnackbarOpen(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchRecentDocuments();
+  }, []);
 
   // Handle file drop
-  const onDrop = useCallback((acceptedFiles: File[]) => {
-    const newDocs = acceptedFiles.map(file => ({
-      id: Date.now().toString() + Math.random().toString(36).substr(2, 5),
-      file,
-      fileName: file.name,
-      uploadDate: new Date(),
-      tags: [],
-      processingStatus: 'uploading' as const,
-      addedToRecords: false,
-    }));
-
-    setDocuments(prev => [...prev, ...newDocs]);
-
-    // Process each document (simulated API calls)
-    newDocs.forEach(doc => {
-      // Simulate upload delay
-      setTimeout(() => {
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    for (const file of acceptedFiles) {
+      try {
+        // Create temporary entry with uploading status
+        const tempId = Date.now().toString() + Math.random().toString(36).substr(2, 5);
+        const tempDoc: ProcessedDocument = {
+          id: tempId,
+          file,
+          filename: file.name,
+          uploadDate: new Date(),
+          tags: [],
+          status: 'uploading',
+          addedToRecords: false,
+        };
+        
+        setDocuments(prev => [...prev, tempDoc]);
+        
+        // Upload file to server
+        const response = await documentsApi.uploadDocument(file);
+        
+        // Replace temporary entry with server response
         setDocuments(current => 
           current.map(d => 
-            d.id === doc.id ? { ...d, processingStatus: 'analyzing' } : d
+            d.id === tempId ? { 
+              ...d, 
+              id: response.id,
+              status: response.status,
+            } : d
           )
         );
-
-        // Simulate AI tagging delay
-        setTimeout(() => {
-          // Simulate AI detected tags (in real app, would come from API)
-          const aiDetectedTags = generateAITags();
-          
-          setDocuments(current => 
-            current.map(d => 
-              d.id === doc.id ? { 
-                ...d, 
-                processingStatus: 'complete',
-                tags: aiDetectedTags,
-                aiConfidence: Math.floor(Math.random() * 30) + 70 // Random 70-100
-              } : d
-            )
-          );
-        }, 3000); 
-      }, 1500);
-    });
+        
+        // Poll for document status until complete
+        pollDocumentStatus(response.id);
+        
+      } catch (error) {
+        console.error('Error uploading document:', error);
+        setSnackbarMessage('Failed to upload document');
+        setSnackbarOpen(true);
+      }
+    }
   }, []);
+
+  // Poll document status until processing is complete
+  const pollDocumentStatus = async (docId: string | number) => {
+    try {
+      // Initial delay before polling
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      let complete = false;
+      while (!complete) {
+        const docData = await documentsApi.getDocument(docId);
+        
+        // Update document in state
+        setDocuments(current => 
+          current.map(d => {
+            if (d.id === docId) {
+              return {
+                ...d,
+                status: docData.status,
+                tags: docData.tags || [],
+                ai_confidence: docData.ai_confidence
+              } as ProcessedDocument;
+            }
+            return d;
+          })
+        );
+        
+        if (docData.status === 'complete' || docData.status === 'error') {
+          complete = true;
+        } else {
+          // Wait before polling again
+          await new Promise(resolve => setTimeout(resolve, 3000));
+        }
+      }
+    } catch (error) {
+      console.error('Error polling document status:', error);
+    }
+  };
 
   // Dropzone setup
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -126,18 +201,6 @@ const BulkUploadSection: React.FC = () => {
     }
   });
 
-  // Generate random AI tags for demo
-  const generateAITags = (): DocumentTag[] => {
-    const startMonth = Math.floor(Math.random() * 10); // 0-9
-    const numMonths = Math.floor(Math.random() * 3) + 1; // 1-3 months
-    const year = new Date().getFullYear(); // Current year
-    
-    return Array.from({ length: numMonths }, (_, i) => ({
-      month: MONTHS[(startMonth + i) % 12],
-      year: year
-    }));
-  };
-
   // Open edit tags dialog
   const handleEditTags = (doc: ProcessedDocument) => {
     setEditingDocument({...doc});
@@ -145,13 +208,56 @@ const BulkUploadSection: React.FC = () => {
   };
 
   // Save edited tags
-  const handleSaveTags = () => {
+  const handleSaveTags = async () => {
     if (editingDocument) {
-      setDocuments(current => 
-        current.map(d => 
-          d.id === editingDocument.id ? editingDocument : d
-        )
-      );
+      try {
+        // Extract month and year from tags
+        const periodTag = editingDocument.tags.find(tag => tag.tag === 'period');
+        let month: number | undefined;
+        let year: number | undefined;
+        
+        if (periodTag) {
+          month = periodTag.month;
+          year = periodTag.year;
+        }
+        
+        // Custom tags
+        const customTags = editingDocument.tags
+          .filter(tag => tag.tag === 'custom')
+          .map(tag => tag.value);
+        
+        // Update tags on server
+        await documentsApi.updateTags(
+          editingDocument.id,
+          year,
+          month,
+          customTags.length > 0 ? customTags : undefined
+        );
+        
+        // Create a copy of the document with addedToRecords reset to false
+        // because changing tags means we need to re-add the document to records
+        const updatedDoc = {
+          ...editingDocument,
+          addedToRecords: false
+        };
+        
+        // Remove any "added_to_records" tag
+        updatedDoc.tags = updatedDoc.tags.filter(tag => !(tag.tag === 'status' && tag.value === 'added_to_records'));
+        
+        // Update document in state
+        setDocuments(current => 
+          current.map(d => 
+            d.id === updatedDoc.id ? updatedDoc : d
+          )
+        );
+        
+        setSnackbarMessage('Document tags updated. You can now add this document to records.');
+        setSnackbarOpen(true);
+      } catch (error) {
+        console.error('Error updating tags:', error);
+        setSnackbarMessage('Failed to update tags');
+        setSnackbarOpen(true);
+      }
     }
     setIsDialogOpen(false);
     setEditingDocument(null);
@@ -160,109 +266,173 @@ const BulkUploadSection: React.FC = () => {
   // Toggle a month/year tag
   const toggleTag = (month: string, year: number) => {
     if (!editingDocument) return;
-
+    
+    // Get month as number (1-12)
+    const monthIndex = MONTHS.indexOf(month) + 1;
+    
+    // Check if this period tag already exists
     const existingTagIndex = editingDocument.tags.findIndex(
-      tag => tag.month === month && tag.year === year
+      tag => tag.tag === 'period' && tag.month === monthIndex && tag.year === year
     );
-
+    
     if (existingTagIndex >= 0) {
-      // Remove tag
-      const newTags = [...editingDocument.tags];
-      newTags.splice(existingTagIndex, 1);
-      setEditingDocument({...editingDocument, tags: newTags});
+      // Remove the tag if it exists (toggle off)
+      const updatedTags = [...editingDocument.tags];
+      updatedTags.splice(existingTagIndex, 1);
+      setEditingDocument({...editingDocument, tags: updatedTags});
     } else {
-      // Add tag
+      // Add a new period tag (toggle on)
       setEditingDocument({
         ...editingDocument, 
-        tags: [...editingDocument.tags, { month, year }]
+        tags: [
+          ...editingDocument.tags, 
+          { 
+            tag: 'period', 
+            value: `${monthIndex}/${year}`,
+            month: monthIndex,
+            year: year
+          }
+        ]
       });
     }
   };
 
   // Check if a month/year is selected
   const isTagSelected = (month: string, year: number) => {
-    return editingDocument?.tags.some(
-      tag => tag.month === month && tag.year === year
-    ) || false;
+    if (!editingDocument) return false;
+    
+    const monthIndex = MONTHS.indexOf(month) + 1;
+    return editingDocument.tags.some(
+      tag => tag.tag === 'period' && tag.month === monthIndex && tag.year === year
+    );
+  };
+
+  // Helper to get year and month from document tags
+  const getDocumentPeriod = (doc: ProcessedDocument) => {
+    const periodTag = doc.tags.find(tag => tag.tag === 'period');
+    return {
+      id: doc.id,
+      year: periodTag?.year,
+      month: periodTag?.month
+    };
   };
 
   // Add document to monthly records
-  const handleAddToRecords = (docId: string) => {
-    // In a real app, this would make an API call to associate the document with the monthly records
-    setDocuments(current => 
-      current.map(d => 
-        d.id === docId ? { ...d, addedToRecords: true } : d
-      )
-    );
-    
-    // Show success message
-    setSnackbarMessage("Document successfully added to monthly records!");
-    setSnackbarOpen(true);
-    
-    // In a real app, you would also trigger a refresh of the monthly records table
+  const handleAddToRecords = async (docId: string | number) => {
+    try {
+      await documentsApi.addToRecords(docId);
+      
+      // Update document in state
+      setDocuments(current => 
+        current.map(d => 
+          d.id === docId ? { 
+            ...d, 
+            addedToRecords: true,
+            tags: [
+              ...d.tags,
+              { tag: 'status', value: 'added_to_records' }
+            ]
+          } : d
+        )
+      );
+      
+      // Find the document that was just added
+      const doc = documents.find(d => d.id === docId);
+      if (doc && onDocumentsAddedToRecords) {
+        onDocumentsAddedToRecords([getDocumentPeriod(doc)]);
+      }
+      
+      setSnackbarMessage('Document successfully added to monthly records!');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Error adding document to records:', error);
+      setSnackbarMessage('Failed to add document to records');
+      setSnackbarOpen(true);
+    }
   };
 
-  // Add all processed documents to monthly records
-  const handleAddAllToRecords = () => {
-    const completedDocs = documents.filter(doc => 
-      doc.processingStatus === 'complete' && !doc.addedToRecords
+  // Handle batch add to records
+  const handleAddAllToRecords = async () => {
+    const unaddedDocs = documents.filter(
+      doc => doc.status === 'complete' && !doc.addedToRecords
     );
     
-    if (completedDocs.length === 0) {
-      setSnackbarMessage("No new documents to add to records.");
+    if (unaddedDocs.length === 0) {
+      setSnackbarMessage('No documents ready to be added');
       setSnackbarOpen(true);
       return;
     }
     
-    // Mark all completed docs as added
-    setDocuments(current => 
-      current.map(d => 
-        (d.processingStatus === 'complete' && !d.addedToRecords) 
-          ? { ...d, addedToRecords: true } 
-          : d
-      )
-    );
-    
-    // Show success message
-    setSnackbarMessage(`${completedDocs.length} document(s) added to monthly records!`);
-    setSnackbarOpen(true);
-    
-    // In a real app, you would also trigger a refresh of the monthly records table
+    try {
+      // Process each document sequentially
+      for (const doc of unaddedDocs) {
+        await documentsApi.addToRecords(doc.id);
+      }
+      
+      // Update all documents in state
+      setDocuments(current => 
+        current.map(d => {
+          if (unaddedDocs.some(doc => doc.id === d.id)) {
+            return { 
+              ...d, 
+              addedToRecords: true,
+              tags: [
+                ...d.tags,
+                { tag: 'status', value: 'added_to_records' }
+              ]
+            };
+          }
+          return d;
+        })
+      );
+      
+      // Notify parent component
+      if (onDocumentsAddedToRecords) {
+        const addedDocs = unaddedDocs.map(doc => getDocumentPeriod(doc));
+        onDocumentsAddedToRecords(addedDocs);
+      }
+      
+      setSnackbarMessage(`${unaddedDocs.length} documents added to monthly records!`);
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Error adding documents to records:', error);
+      setSnackbarMessage('Failed to add some documents to records');
+      setSnackbarOpen(true);
+    }
   };
 
+  // Handle document deletion
+  const handleDeleteDocument = async (docId: string | number) => {
+    try {
+      // Call the API to delete the document
+      await documentsApi.deleteDocument(docId);
+      
+      // Remove the document from state
+      setDocuments(current => current.filter(d => d.id !== docId));
+      
+      setSnackbarMessage('Document deleted successfully');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      setSnackbarMessage('Failed to delete document');
+      setSnackbarOpen(true);
+    }
+  };
+
+  // Close snackbar
   const handleCloseSnackbar = () => {
     setSnackbarOpen(false);
   };
 
-  // Count docs that can be added to records
-  const readyDocsCount = documents.filter(
-    doc => doc.processingStatus === 'complete' && !doc.addedToRecords
-  ).length;
-
   return (
     <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6" gutterBottom>
-          Bulk Financial Document Upload
-        </Typography>
-        
-        {readyDocsCount > 0 && (
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleAddAllToRecords}
-          >
-            Add {readyDocsCount} Document{readyDocsCount > 1 ? 's' : ''} to Records
-          </Button>
-        )}
-      </Box>
-      
-      <Typography variant="body2" color="text.secondary" paragraph>
-        Upload all your financial documents at once. Our AI will automatically detect which months each document covers.
+      <Typography variant="h6" gutterBottom>
+        Bulk Document Upload
       </Typography>
-      
-      {/* Dropzone */}
+      <Typography variant="body2" color="text.secondary" paragraph>
+        Upload your financial documents for AI-powered period detection and automatic tagging.
+      </Typography>
+
       <Paper
         {...getRootProps()}
         sx={{
@@ -282,56 +452,60 @@ const BulkUploadSection: React.FC = () => {
         }}
       >
         <input {...getInputProps()} />
-        <CloudUploadIcon sx={{ fontSize: 48, color: 'primary.main', mb: 2 }} />
+        <CloudUploadIcon sx={{ fontSize: 40, color: 'primary.main', mb: 2 }} />
         <Typography variant="h6" gutterBottom>
-          {isDragActive ? 'Drop files here' : 'Drag & drop financial documents here'}
+          Drag & Drop Files Here
         </Typography>
         <Typography variant="body2" color="text.secondary">
-          Supported formats: PDF, Excel, CSV, JPG, PNG
+          or click to browse your files
         </Typography>
-        <Button 
-          variant="contained" 
-          sx={{ mt: 2 }}
-          onClick={e => e.stopPropagation()}
-        >
-          Browse Files
-        </Button>
+        <Typography variant="caption" display="block" sx={{ mt: 1 }}>
+          Supported formats: PDF, Excel, CSV, Images
+        </Typography>
       </Paper>
 
-      {/* Document List */}
+      {/* Document processing area */}
       {documents.length > 0 && (
         <Box>
-          <Typography variant="h6" gutterBottom sx={{ mt: 4, mb: 2 }}>
-            Recently Uploaded Documents
-          </Typography>
-          
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="subtitle1">
+              Document Processing ({documents.length})
+            </Typography>
+            
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<AddIcon />}
+              onClick={handleAddAllToRecords}
+              disabled={!documents.some(doc => doc.status === 'complete' && !doc.addedToRecords)}
+            >
+              Add All to Records
+            </Button>
+          </Box>
+
           <Grid container spacing={2}>
-            {documents.map((doc) => (
+            {documents.map(doc => (
               <Grid item xs={12} sm={6} md={4} key={doc.id}>
-                <Card 
-                  variant="outlined" 
-                  sx={{ 
-                    borderRadius: 2,
-                    transition: 'all 0.2s ease',
-                    '&:hover': {
-                      boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                    },
-                    borderColor: doc.addedToRecords 
-                      ? 'success.main' 
-                      : (doc.processingStatus === 'complete' ? 'success.light' : 'divider')
-                  }}
-                >
+                <Card variant="outlined" sx={{ 
+                  borderRadius: 2,
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  },
+                  borderColor: doc.addedToRecords 
+                    ? 'success.main' 
+                    : (doc.status === 'complete' ? 'success.light' : 'divider')
+                }}>
                   <CardContent>
-                    <Typography variant="subtitle1" noWrap title={doc.fileName}>
-                      {doc.fileName}
+                    <Typography variant="subtitle1" noWrap title={doc.filename}>
+                      {doc.filename}
                     </Typography>
-                    
-                    <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
-                      Uploaded: {doc.uploadDate.toLocaleDateString()}
+                    <Typography variant="caption" color="text.secondary" display="block">
+                      Uploaded: {new Date(doc.uploadDate).toLocaleString()}
                     </Typography>
-                    
-                    {/* Status indicators */}
-                    {doc.processingStatus === 'uploading' && (
+
+                    {/* Processing status indicators */}
+                    {doc.status === 'uploading' && (
                       <Box sx={{ mb: 2 }}>
                         <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                           <AccessTimeIcon fontSize="small" sx={{ mr: 0.5, color: 'info.main' }} />
@@ -340,98 +514,110 @@ const BulkUploadSection: React.FC = () => {
                         <LinearProgress variant="indeterminate" />
                       </Box>
                     )}
-                    
-                    {doc.processingStatus === 'analyzing' && (
+
+                    {doc.status === 'analyzing' && (
                       <Box sx={{ mb: 2 }}>
                         <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                          <AccessTimeIcon fontSize="small" sx={{ mr: 0.5, color: 'info.main' }} />
-                          AI detecting periods covered...
+                          <AccessTimeIcon fontSize="small" sx={{ mr: 0.5, color: 'warning.main' }} />
+                          AI Analysis in Progress...
                         </Typography>
-                        <LinearProgress variant="indeterminate" color="secondary" />
+                        <LinearProgress variant="indeterminate" color="warning" />
                       </Box>
                     )}
-                    
-                    {doc.processingStatus === 'complete' && (
+
+                    {doc.status === 'complete' && (
                       <Box sx={{ mb: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                          <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center' }}>
-                            <CheckCircleIcon fontSize="small" sx={{ mr: 0.5, color: 'success.main' }} />
-                            Detected periods:
-                          </Typography>
-                          {doc.aiConfidence && (
-                            <Tooltip title="AI confidence in the detected periods">
-                              <Chip 
-                                label={`${doc.aiConfidence}%`} 
-                                size="small" 
-                                color={doc.aiConfidence > 85 ? "success" : "warning"}
-                              />
-                            </Tooltip>
-                          )}
-                        </Box>
-                        
-                        <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
-                          {doc.tags.map((tag, idx) => (
-                            <Chip
-                              key={idx}
-                              size="small"
-                              label={`${tag.month} ${tag.year}`}
-                              icon={<CalendarMonthIcon />}
-                              sx={{ mb: 1 }}
+                        <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                          <CheckCircleIcon fontSize="small" sx={{ mr: 0.5, color: 'success.main' }} />
+                          Processing Complete
+                          {doc.ai_confidence && (
+                            <Chip 
+                              label={`${doc.ai_confidence}% Confidence`} 
+                              size="small" 
+                              variant="outlined"
+                              sx={{ ml: 1 }}
                             />
-                          ))}
+                          )}
+                        </Typography>
+                        
+                        {/* Display period tags */}
+                        <Stack direction="row" spacing={1} flexWrap="wrap" sx={{ mb: 1 }}>
+                          {doc.tags
+                            .filter(tag => tag.tag === 'period')
+                            .map((tag, index) => (
+                              <Chip
+                                key={index}
+                                icon={<CalendarMonthIcon fontSize="small" />}
+                                label={tag.value}
+                                size="small"
+                                color="primary"
+                                variant="outlined"
+                              />
+                            ))}
+                            
+                          {/* Display type tags */}
+                          {doc.tags
+                            .filter(tag => tag.tag === 'type')
+                            .map((tag, index) => (
+                              <Chip
+                                key={`type-${index}`}
+                                label={tag.value}
+                                size="small"
+                                color="secondary"
+                                variant="outlined"
+                              />
+                            ))}
                         </Stack>
                       </Box>
                     )}
-                    
-                    {doc.addedToRecords && (
-                      <Chip 
-                        color="success" 
-                        size="small" 
-                        icon={<CheckCircleIcon />} 
-                        label="Added to monthly records" 
-                        sx={{ mb: 1 }}
-                      />
+
+                    {doc.status === 'error' && (
+                      <Box sx={{ mb: 2 }}>
+                        <Typography variant="body2" sx={{ display: 'flex', alignItems: 'center', color: 'error.main' }}>
+                          <WarningIcon fontSize="small" sx={{ mr: 0.5 }} />
+                          Processing Error
+                        </Typography>
+                      </Box>
                     )}
                   </CardContent>
-                  
-                  <CardActions sx={{ justifyContent: 'flex-end', px: 2, pb: 2 }}>
-                    <Tooltip title="View Document">
-                      <IconButton size="small" onClick={() => window.open(URL.createObjectURL(doc.file))}>
-                        <VisibilityIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
-                    
-                    {doc.processingStatus === 'complete' && !doc.addedToRecords && (
-                      <Tooltip title="Add to Monthly Records">
-                        <Button
-                          size="small"
-                          variant="outlined"
-                          color="primary"
-                          startIcon={<AddIcon />}
-                          onClick={() => handleAddToRecords(doc.id)}
-                        >
-                          Add to Records
-                        </Button>
+
+                  <CardActions sx={{ justifyContent: 'space-between', px: 2, pb: 2 }}>
+                    <Box sx={{ display: 'flex', gap: 1 }}>
+                      <Tooltip title="Edit Tags">
+                        <span>
+                          <IconButton 
+                            size="small" 
+                            onClick={() => handleEditTags(doc)}
+                            disabled={doc.status !== 'complete'}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </span>
                       </Tooltip>
-                    )}
-                    
-                    {doc.processingStatus === 'complete' && (
-                      <Tooltip title="Edit Periods">
-                        <IconButton size="small" onClick={() => handleEditTags(doc)}>
-                          <EditIcon fontSize="small" />
-                        </IconButton>
+                      
+                      <Tooltip title="Delete Document">
+                        <span>
+                          <IconButton 
+                            size="small" 
+                            color="error"
+                            onClick={() => handleDeleteDocument(doc.id)}
+                          >
+                            <RemoveCircleIcon fontSize="small" />
+                          </IconButton>
+                        </span>
                       </Tooltip>
-                    )}
+                    </Box>
                     
-                    <Tooltip title="Remove Document">
-                      <IconButton 
-                        size="small" 
-                        color="error" 
-                        onClick={() => setDocuments(docs => docs.filter(d => d.id !== doc.id))}
-                      >
-                        <RemoveCircleIcon fontSize="small" />
-                      </IconButton>
-                    </Tooltip>
+                    <Button
+                      size="small"
+                      variant={doc.addedToRecords ? "outlined" : "contained"}
+                      color={doc.addedToRecords ? "success" : "primary"}
+                      onClick={() => handleAddToRecords(doc.id)}
+                      disabled={doc.status !== 'complete' || doc.addedToRecords}
+                      startIcon={doc.addedToRecords ? <CheckCircleIcon /> : <AddIcon />}
+                    >
+                      {doc.addedToRecords ? 'Added to Records' : 'Add to Records'}
+                    </Button>
                   </CardActions>
                 </Card>
               </Grid>
@@ -440,55 +626,54 @@ const BulkUploadSection: React.FC = () => {
         </Box>
       )}
 
-      {/* Edit Tags Dialog */}
+      {/* Edit tags dialog */}
       <Dialog open={isDialogOpen} onClose={() => setIsDialogOpen(false)} maxWidth="md">
-        <DialogTitle>
-          Edit Document Periods
-          <Typography variant="subtitle2" color="text.secondary">
-            {editingDocument?.fileName}
-          </Typography>
-        </DialogTitle>
-        
-        <DialogContent>
-          <Typography variant="body2" paragraph>
-            Select which months and years this document covers:
-          </Typography>
-          
-          {YEARS.map(year => (
-            <Box key={year} sx={{ mb: 3 }}>
+        <DialogTitle>Edit Document Tags</DialogTitle>
+        <DialogContent dividers>
+          {editingDocument && (
+            <>
               <Typography variant="subtitle1" gutterBottom>
-                {year}
+                {editingDocument.filename}
               </Typography>
-              <Grid container spacing={1}>
-                {MONTHS.map(month => (
-                  <Grid item xs={4} sm={3} key={`${month}-${year}`}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox 
-                          checked={isTagSelected(month, year)}
-                          onChange={() => toggleTag(month, year)}
-                          size="small"
+              
+              <Typography variant="subtitle2" sx={{ mt: 2 }}>
+                Select Period (Month & Year)
+              </Typography>
+              
+              <Grid container spacing={1} sx={{ mt: 1 }}>
+                {YEARS.map(year => (
+                  <React.Fragment key={year}>
+                    <Grid item xs={12}>
+                      <Typography variant="body2" fontWeight="bold" sx={{ mt: 1 }}>
+                        {year}
+                      </Typography>
+                    </Grid>
+                    {MONTHS.map(month => (
+                      <Grid item key={`${month}-${year}`}>
+                        <Chip
+                          label={month}
+                          onClick={() => toggleTag(month, year)}
+                          color={isTagSelected(month, year) ? "primary" : "default"}
+                          variant={isTagSelected(month, year) ? "filled" : "outlined"}
                         />
-                      }
-                      label={month}
-                    />
-                  </Grid>
+                      </Grid>
+                    ))}
+                  </React.Fragment>
                 ))}
               </Grid>
-            </Box>
-          ))}
+            </>
+          )}
         </DialogContent>
-        
         <DialogActions>
           <Button onClick={() => setIsDialogOpen(false)}>Cancel</Button>
           <Button onClick={handleSaveTags} variant="contained">Save</Button>
         </DialogActions>
       </Dialog>
-      
-      {/* Success Snackbar */}
+
+      {/* Notification snackbar */}
       <Snackbar 
         open={snackbarOpen} 
-        autoHideDuration={4000} 
+        autoHideDuration={6000} 
         onClose={handleCloseSnackbar}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >

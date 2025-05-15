@@ -8,6 +8,7 @@ import Dashboard from './pages/Dashboard';
 import CompanyProfile from './pages/CompanyProfile';
 import FundingRecommendations from './pages/FundingRecommendations';
 import FinancialRecords from './pages/FinancialRecords';
+import AdminPage from './pages/AdminPage';
 
 /**
  * Main App component.
@@ -54,6 +55,7 @@ function App() {
             <Route path="/company-profile" element={<CompanyProfile />} />
             <Route path="/funding-recommendations" element={<FundingRecommendations />} />
             <Route path="/financial-records" element={<FinancialRecords />} />
+            <Route path="/admin" element={<AdminPage />} />
           </Routes>
         </AppLayout>
       </Router>
