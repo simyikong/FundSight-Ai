@@ -14,9 +14,12 @@ const navButtonStyle = {
   fontSize: '1rem',
   px: 2,
   transition: 'all 0.2s',
+  borderRadius: '20px',
   '&:hover': {
     background: 'rgba(255, 255, 255, 0.1)',
+    border: '1.5px solid #8EC5FC',
     transform: 'translateY(-2px)',
+    borderRadius: '20px',
   },
 };
 
