@@ -15,23 +15,23 @@ interface ChatDrawerProps {
  */
 const ChatDrawer: React.FC<ChatDrawerProps> = ({ open, width, onClose, onMouseDown }) => {
   return (
-    <Drawer 
-      anchor="right" 
-      open={open} 
+    <Drawer
+      anchor="right"
+      open={open}
       onClose={onClose}
       variant="persistent"
-      PaperProps={{ 
-        sx: { 
+      PaperProps={{
+        sx: {
           width: width,
           height: '100vh',
           border: 'none',
           boxShadow: '-4px 0 25px rgba(0, 0, 0, 0.15)',
           position: 'fixed',
           right: 0,
-        } 
+        }
       }}
     >
-      <div 
+      <div
         style={{
           width: '10px',
           cursor: 'ew-resize',

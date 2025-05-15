@@ -49,7 +49,7 @@ function App() {
           handleDrawerMouseDown={handleDrawerMouseDown}
         >
           <Routes>
-            <Route path="/" element={<Home />} />
+            <Route path="/" element={<Home chatbotOpen={chatbotOpen} />} />
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/company-profile" element={<CompanyProfile />} />
             <Route path="/funding-recommendations" element={<FundingRecommendations />} />
