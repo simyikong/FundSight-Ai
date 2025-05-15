@@ -119,6 +119,95 @@ async def analyze_financial_metrics(
         logger.error(f"Error analyzing metrics for {month}/{year}: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error analyzing metrics: {str(e)}")
 
+@router.get("/metrics/table/{year}")
+async def get_yearly_metrics_table(
+    year: int,
+    db: Session = Depends(get_db)
+):
+    """
+    Get metrics for all months in a year and build a month-by-month table
+    """
+    # Define the month names
+    month_names = ["January", "February", "March", "April", "May", "June", 
+                   "July", "August", "September", "October", "November", "December"]
+    
+    # Initialize the result structure
+    result = {
+        "year": year,
+        "months": {}
+    }
+    
+    # For each month, get the metrics
+    for month_idx, month_name in enumerate(month_names, 1):
+        # First check if we have metrics for this month
+        metrics_entry = db.query(FinancialMetric).filter(
+            FinancialMetric.year == year,
+            FinancialMetric.month == month_idx
+        ).first()
+        
+        documents = []
+        has_data = False
+        
+        # If we have metrics, get the associated documents
+        if metrics_entry:
+            has_data = True
+            document_ids = metrics_entry.document_ids.split(",") if metrics_entry.document_ids else []
+            
+            if document_ids:
+                # Get the documents associated with these metrics
+                doc_ids = [int(doc_id) for doc_id in document_ids if doc_id.strip()]
+                if doc_ids:
+                    docs = db.query(Document).filter(Document.id.in_(doc_ids)).all()
+                    for doc in docs:
+                        documents.append({
+                            "id": doc.id,
+                            "filename": doc.filename,
+                            "status": doc.status,
+                            "upload_date": doc.upload_date.isoformat() if doc.upload_date else None
+                        })
+        
+        # If no metrics found, also check for documents with period tags for this month/year
+        if not has_data or not documents:
+            # Look for documents with a period tag for this month and year
+            period_tag_docs = db.query(Document).join(
+                DocumentTag, 
+                Document.id == DocumentTag.document_id
+            ).filter(
+                DocumentTag.tag == "period",
+                DocumentTag.year == year,
+                DocumentTag.month == month_idx
+            ).all()
+            
+            if period_tag_docs:
+                has_data = True
+                for doc in period_tag_docs:
+                    # Check if this document is already in our list
+                    if not any(d['id'] == doc.id for d in documents):
+                        documents.append({
+                            "id": doc.id,
+                            "filename": doc.filename,
+                            "status": doc.status,
+                            "upload_date": doc.upload_date.isoformat() if doc.upload_date else None
+                        })
+        
+        # Get the current time for lastAnalysisDate
+        last_analysis_date = metrics_entry.last_analysis_date.isoformat() if metrics_entry and metrics_entry.last_analysis_date else None
+        
+        # Add the month data to the result with metrics in a nested object for backward compatibility
+        result["months"][month_name] = {
+            "monthIndex": month_idx,
+            "hasData": has_data,
+            "documents": documents,
+            "metrics": {
+                "revenue": metrics_entry.revenue if metrics_entry else 0.0,
+                "expenses": metrics_entry.expenses if metrics_entry else 0.0,
+                "profit": metrics_entry.profit if metrics_entry else 0.0,
+                "cashFlow": metrics_entry.cash_flow if metrics_entry else 0.0
+            },
+            "lastAnalysisDate": last_analysis_date
+        }
+    
+    return result
 
 @router.get("/metrics/{year}/{month}")
 async def get_financial_metrics(
@@ -185,68 +274,4 @@ async def get_financial_metrics(
         raise
     except Exception as e:
         logger.error(f"Error getting metrics for {month}/{year}: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error getting metrics: {str(e)}")
-
-
-@router.get("/metrics/table/{year}")
-async def get_yearly_metrics_table(
-    year: int,
-    db: Session = Depends(get_db)
-):
-    """
-    Get a full table of metrics for all months in a year
-    """
-    try:
-        # Get all metrics for this year
-        metrics = db.query(FinancialMetric).filter(
-            FinancialMetric.year == year
-        ).all()
-        
-        # Build month-by-month table
-        months = {}
-        for i in range(1, 13):
-            # Find metric for this month
-            month_metric = next((m for m in metrics if m.month == i), None)
-            
-            # Get documents for this month/year
-            docs = []
-            if month_metric and month_metric.document_ids:
-                doc_ids = month_metric.document_ids.split(",")
-                for doc_id in doc_ids:
-                    try:
-                        doc_id_int = int(doc_id)
-                        doc = db.query(Document).filter(Document.id == doc_id_int).first()
-                        if doc:
-                            docs.append({
-                                "id": doc.id,
-                                "filename": doc.filename
-                            })
-                    except (ValueError, TypeError):
-                        pass
-            
-            # Build month data
-            month_data = {
-                "hasData": bool(month_metric),
-                "documents": docs,
-                "metrics": {
-                    "revenue": month_metric.revenue if month_metric else 0,
-                    "expenses": month_metric.expenses if month_metric else 0,
-                    "profit": month_metric.profit if month_metric else 0,
-                    "cashFlow": month_metric.cash_flow if month_metric else 0
-                },
-                "lastAnalysisDate": month_metric.last_analysis_date.isoformat() if month_metric and month_metric.last_analysis_date else None
-            }
-            
-            # Convert month number to name
-            month_names = ["January", "February", "March", "April", "May", "June", 
-                           "July", "August", "September", "October", "November", "December"]
-            months[month_names[i-1]] = month_data
-        
-        return {
-            "year": year,
-            "months": months
-        }
-        
-    except Exception as e:
-        logger.error(f"Error getting yearly metrics table for {year}: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Error getting yearly metrics: {str(e)}") 
+        raise HTTPException(status_code=500, detail=f"Error getting metrics: {str(e)}") 

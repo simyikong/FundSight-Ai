@@ -25,25 +25,32 @@ class AIService:
     
     def detect_document_period(self, markdown_content, filename):
         """
-        Detect the time period (month and year) a document refers to
+        Detect the time periods (months and years) a document refers to
         """
         try:
             prompt = f"""
             You are an AI specialized in detecting time periods in financial documents.
-            Analyze the following document content and filename to determine which month and year it refers to.
+            Analyze the following document content and filename to determine which month(s) and year(s) it refers to.
             
             Document filename: {filename}
             Document content snippet (first part):
             {markdown_content}
             
-            Return your analysis as a JSON object with the following format:
+            The document may refer to multiple periods. Return your analysis as a JSON object with the following format:
             {{
-                "year": <detected year as integer>,
-                "month": <detected month as integer 1-12>,
-                "confidence": <confidence level 0-100>,
+                "periods": [
+                    {{
+                        "year": <detected year as integer>,
+                        "month": <detected month as integer 1-12>,
+                        "confidence": <confidence level 0-100>
+                    }},
+                    // additional periods if detected
+                ],
+                "confidence": <overall confidence level 0-100>,
                 "detected_tags": [<list of relevant tags like "income statement", "invoice", "receipt", etc.>]
             }}
             
+            If you detect only one period, include just one object in the periods array.
             If you cannot detect a specific year or month, use null for that field.
             Focus on finding dates that represent the reporting period, not the creation date of the document.
             """
@@ -65,13 +72,41 @@ class AIService:
             if json_match:
                 json_str = json_match.group(1)
                 data = json.loads(json_str)
-                return data
+                
+                # If using new format with periods array
+                if "periods" in data:
+                    # Return the new format directly
+                    return data
+                # For backward compatibility, convert old format to new format
+                else:
+                    year = data.get("year")
+                    month = data.get("month")
+                    confidence = data.get("confidence", 50)
+                    detected_tags = data.get("detected_tags", [])
+                    
+                    # Create new format
+                    return {
+                        "periods": [
+                            {
+                                "year": year,
+                                "month": month,
+                                "confidence": confidence
+                            }
+                        ],
+                        "confidence": confidence,
+                        "detected_tags": detected_tags
+                    }
             else:
                 logger.error(f"No valid JSON found in response: {response_text}")
-                # Return default data
+                # Return default data in new format
                 return {
-                    "year": datetime.now().year,
-                    "month": datetime.now().month,
+                    "periods": [
+                        {
+                            "year": datetime.now().year,
+                            "month": datetime.now().month,
+                            "confidence": 50
+                        }
+                    ],
                     "confidence": 50,
                     "detected_tags": ["unknown"]
                 }
@@ -80,8 +115,13 @@ class AIService:
             logger.error(f"Error detecting document period: {str(e)}", exc_info=True)
             # Return default values on error
             return {
-                "year": datetime.now().year,
-                "month": datetime.now().month,
+                "periods": [
+                    {
+                        "year": datetime.now().year,
+                        "month": datetime.now().month,
+                        "confidence": 50
+                    }
+                ],
                 "confidence": 50,
                 "detected_tags": ["error"]
             }
