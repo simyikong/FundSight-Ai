@@ -1,9 +1,7 @@
 import React from 'react';
-import { Box, Typography, Grid, useTheme, Button, } from '@mui/material';
-import { FeatureCard } from '../components/Layout';
+import { Box, Typography, Grid, Button, } from '@mui/material';
 import BarChartIcon from '@mui/icons-material/BarChart';
 import BusinessIcon from '@mui/icons-material/Business';
-import CreditScoreIcon from '@mui/icons-material/CreditScore';
 import ForumIcon from '@mui/icons-material/Forum';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import { useNavigate } from 'react-router-dom';
