@@ -173,6 +173,60 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }
   };
 
+  const quickStarts = [
+    "Suggest me some loans",
+    "What is my revenue growth?",
+    "How can I reduce cost?"
+  ];
+
+  const handleQuickStart = async (msg: string) => {
+    setInput(msg);
+    await new Promise(r => setTimeout(r, 100)); // Ensure input is set before sending
+    handleSendQuick(msg);
+  };
+
+  // Separate handler to avoid double input clearing
+  const handleSendQuick = async (msg: string) => {
+    if (!msg.trim()) return;
+    const newMessage: Message = {
+      role: 'user',
+      content: msg
+    };
+    setMessages(prev => [...prev, newMessage]);
+    setInput('');
+    setFile(null);
+    setIsLoading(true);
+    try {
+      const messageData = {
+        query: msg,
+        message_history: messages,
+      };
+      const llm_response = await chatApi.sendMessage(messageData);
+      let content: string;
+      if (typeof llm_response.data.response === 'string') {
+        content = llm_response.data.response;
+      } else if (typeof llm_response.data.response === 'object' && llm_response.data.response !== null) {
+        content = llm_response.data.response.message;
+      } else {
+        content = 'Unexpected response format.';
+      }
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: content
+      }]);
+      if (llm_response.data.switch_tab) {
+        handleTabSwitch(llm_response.data.switch_tab);
+      }
+    } catch (error) {
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: 'Sorry, there was an error processing your message.'
+      }]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const renderMessage = (message: Message, index: number) => {
     const content = typeof message.content === 'string' 
       ? message.content 
@@ -270,6 +324,36 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 <ReactMarkdown>{content}</ReactMarkdown>
               </Typography>
             </Paper>
+            {message.role === 'assistant' && (
+            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+              <IconButton 
+                size="small" 
+                onClick={() => handleLike(index)}
+                sx={{
+                  color: message.liked ? '#ABFFF3' : 'rgba(255,255,255,0.5)',
+                  '&:hover': {
+                    color: '#ABFFF3',
+                    background: 'rgba(224, 195, 252, 0.1)'
+                  }
+                }}
+              >
+                <ThumbUpIcon fontSize="small" />
+              </IconButton>
+              <IconButton 
+                size="small" 
+                onClick={() => handleDislike(index)}
+                sx={{
+                  color: message.disliked ? '#FF6B6B' : 'rgba(255,255,255,0.5)',
+                  '&:hover': {
+                    color: '#FF6B6B',
+                    background: 'rgba(255,107,107,0.1)'
+                  }
+                }}
+              >
+                <ThumbDownIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          )}
           </Box>
         </Box>
       </Box>
@@ -289,21 +373,47 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       height: '100%', 
       display: 'flex', 
       flexDirection: 'column',
-      background: 'linear-gradient(135deg, #0F172A 0%, #312E81 100%)',
+      background: 'linear-gradient(135deg, rgba(22, 35, 63, 0.95) 10%, rgba(49, 46, 129, 0.95) 100%)',
       borderRadius: '0px',
-      backdropFilter: 'blur(10px)',
+      backdropFilter: 'blur(20px)',
       border: '1px solid rgba(255, 255, 255, 0.1)',
+      position: 'relative',
+      overflow: 'hidden',
+      '&::before': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: `
+          radial-gradient(circle at 80% 10%, rgba(157, 76, 232, 0.15) 0%, transparent 35%),
+          radial-gradient(circle at 20% 10%, rgba(70, 147, 229, 0.2) 0%, transparent 40%),
+          radial-gradient(circle at 50% 5%, rgba(246, 153, 251, 0.15) 0%, transparent 30%)
+        `,
+        pointerEvents: 'none',
+      },
+      '&::after': {
+        content: '""',
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        pointerEvents: 'none',
+      }
     }}>
       <Box sx={{ 
         display: 'flex', 
         justifyContent: 'space-between', 
         alignItems: 'center', 
         px: 2, 
-        py:2.2,
+        py: 2.2,
         borderBottom: '1px solid rgba(255,255,255,0.1)',
-        background: 'linear-gradient(135deg, rgba(13, 15, 35, 0.95) 0%, rgba(29, 37, 92, 0.74) 100%)',
-        boxShadow: '0px 20px 55px 0px rgba(131, 141, 249, 0.20)',
-        backdropFilter: 'blur(5px)',
+        background: 'linear-gradient(135deg, rgba(13, 15, 35, 0.98) 0%, rgba(29, 37, 92, 0.95) 100%)',
+        backdropFilter: 'blur(10px)',
+        position: 'relative',
+        zIndex: 1,
       }}>
         <IconButton onClick={onClose} size="small" sx={{ 
           color: 'rgba(255,255,255,0.7)',
@@ -343,10 +453,62 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         </IconButton>
       </Box>
       <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
-        {messages.map((message, index) => (
-          <div key={index}>{renderMessage(message, index)}</div>
-        ))}
-        <div ref={messagesEndRef} />
+        {messages.length === 0 ? (
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            width: '100%',
+            minHeight: 400,
+          }}>
+            <Typography variant="h4" sx={{
+              fontWeight: 700,
+              background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
+              backgroundClip: 'text',
+              WebkitBackgroundClip: 'text',
+              color: 'transparent',
+              letterSpacing: '0.5px',
+              textShadow: '0 2px 10px rgba(224, 195, 252, 0.2)',
+              mb: 5,
+              textAlign: 'center',
+            }}>
+              How can I help you?
+            </Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              {quickStarts.map((msg) => (
+                <Paper
+                  key={msg}
+                  elevation={0}
+                  sx={{
+                    px: 2,
+                    py: 1,
+                    mb: 1.5,
+                    borderRadius: 1,
+                    background: 'rgba(255,255,255,0.08)',
+                    color: 'rgba(255, 255, 255, 0.52)',
+                    cursor: 'pointer',
+                    display: 'inline-block',
+                    '&:hover': {
+                      background: 'rgba(255,255,255,0.15)',
+                    }
+                  }}
+                  onClick={() => handleQuickStart(msg)}
+                >
+                  {msg}
+                </Paper>
+              ))}
+            </Box>
+          </Box>
+        ) : (
+          <>
+            {messages.map((message, index) => (
+              <div key={index}>{renderMessage(message, index)}</div>
+            ))}
+            <div ref={messagesEndRef} />
+          </>
+        )}
       </Box>
       <Box sx={{ p: 2, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(5px)' }}>
         {fileInfo && (
@@ -393,7 +555,6 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         )}
         <Box sx={{ 
           display: 'flex', 
-          gap: 1.5,
           background: 'rgba(255,255,255,0.10)',
           p: 1.5,
           borderRadius: 2,
@@ -433,9 +594,14 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               sx: { 
                 color: 'white',
                 fontSize: 16,
+                width: '360px', // Make input wider
+                maxWidth: '100%',
+                background: 'transparent',
+                border: 'none',
                 '& input': {
                   paddingTop: '8px', 
-                  paddingBottom: '8px',     
+                  paddingBottom: '8px', 
+                  paddingLeft: '10px',
                 },
                 '& input::placeholder': {
                   color: 'rgba(255,255,255,0.5)',
