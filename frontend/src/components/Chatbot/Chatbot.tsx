@@ -6,7 +6,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import ThumbUpIcon from '@mui/icons-material/ThumbUp';
 import ThumbDownIcon from '@mui/icons-material/ThumbDown';
 import MicIcon from '@mui/icons-material/Mic';
-import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';  
+import RocketLaunchIcon from '@mui/icons-material/RocketLaunch';
 import { keyframes } from '@mui/system';
 import MenuOpenIcon from '@mui/icons-material/MenuOpen';
 import { BiSolidEdit } from "react-icons/bi";
@@ -17,7 +17,7 @@ import DescriptionIcon from '@mui/icons-material/Description';
 
 interface Message {
   role: string;
-  content: string | Array<{text?: string; file?: string}>;
+  content: string | Array<{ text?: string; file?: string; name?: string; type?: string }>;
   liked?: boolean;
   disliked?: boolean;
 }
@@ -49,7 +49,7 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     scrollToBottom();
   }, [messages]);
 
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
 
   const handleTabSwitch = (tabName: string) => {
     switch (tabName) {
@@ -66,25 +66,36 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   };
 
   const handleSend = async () => {
-    if (!input.trim() && !file) return;
+    if (!input.trim() && !file && !fileInfo) return;
 
-    const newMessage: Message = {
-      role: 'user',
-      content: file 
-        ? [{ text: input }, ...(file ? [{ file }] : [])]
-        : input
-    };
-
-    setMessages(prev => [...prev, newMessage]);
     setInput('');
     setFile(null);
+    setFileInfo(null);
     setIsLoading(true);
+
+    let newMessage: Message;
+    if (fileInfo) {
+      newMessage = {
+        role: 'user',
+        content: [
+          ...(input.trim() ? [{ text: input }] : []),
+          { file: fileInfo.data, name: fileInfo.name, type: fileInfo.type }
+        ]
+      };
+    } else {
+      newMessage = {
+        role: 'user',
+        content: input
+      };
+    }
+
+    setMessages(prev => [...prev, newMessage]);
 
     try {
       const messageData = {
         query: input,
         message_history: messages,
-        ...(file && { file })
+        ...(fileInfo && { file: fileInfo.data })
       };
       const llm_response = await chatApi.sendMessage(messageData);
 
@@ -228,9 +239,44 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   };
 
   const renderMessage = (message: Message, index: number) => {
-    const content = typeof message.content === 'string' 
-      ? message.content 
-      : message.content.map(item => item.text || '').join(' ');
+    let filePreview = null;
+    let textContent = '';
+    if (Array.isArray(message.content)) {
+      textContent = message.content.map(item => item.text || '').join(' ');
+      const fileObj = message.content.find(item => item.file);
+      if (fileObj) {
+        filePreview = (
+          <Box sx={{
+            mb: 1,
+            display: 'flex',
+            gap: 1,
+            alignItems: 'center',
+            background: 'rgba(255,255,255,0.13)',
+            py: 1.2,
+            px: 2,
+            borderRadius: 1,
+            border: '1px solid rgba(255,255,255,0.13)',
+            boxShadow: '0 1px 4px rgba(224, 195, 252, 0.10)',
+            backdropFilter: 'blur(10px)',
+            width: 'fit-content',
+          }}>
+            <Avatar sx={{ bgcolor: '#8086bf', width: 28, height: 28, fontSize: 18 }}>
+              <DescriptionIcon sx={{ color: '#fff', fontSize: 18 }} />
+            </Avatar>
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>
+                {fileObj.name || 'File'}
+              </Typography>
+              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', fontWeight: 400 }}>
+                {fileObj.type || ''}
+              </Typography>
+            </Box>
+          </Box>
+        );
+      }
+    } else {
+      textContent = message.content as string;
+    }
     const isUser = message.role === 'user';
 
     return (
@@ -244,31 +290,7 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           width: '100%',
         }}
       >
-        {isUser && fileInfo && (
-          <Box sx={{ 
-            mb: 1, 
-            display: 'flex', 
-            gap: 1, 
-            alignItems: 'center',
-            background: 'rgba(255,255,255,0.13)',
-            py: 1.2,
-            px: 2,
-            borderRadius: 1,
-            border: '1px solid rgba(255,255,255,0.13)',
-            boxShadow: '0 1px 4px rgba(224, 195, 252, 0.10)',
-            backdropFilter: 'blur(10px)', // Glassmorphism effect
-            width: 'fit-content',
-          }}>
-            <Avatar sx={{ bgcolor: 'rgba(134, 106, 226, 0.9)', width: 28, height: 28, fontSize: 18 }}> 
-              <DescriptionIcon sx={{ color: '#fff', fontSize: 18 }} /> 
-            </Avatar>
-            <Box sx={{ display: 'flex', flexDirection: 'column'}}>
-              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>
-                {fileInfo.name}
-              </Typography>
-            </Box>
-          </Box>
-        )}
+        {isUser && Array.isArray(message.content) && message.content.some(item => item.file) && filePreview}
         <Box
           sx={{
             display: 'flex',
@@ -292,7 +314,7 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               <RocketLaunchIcon sx={{ color: '#13111C', fontSize: 22 }} />
             </Avatar>
           )}
-          <Box sx={{ maxWidth: '75%'}}> {/* Adjusted minWidth to prevent wrapping */}
+          <Box sx={{ maxWidth: '75%' }}> {/* Adjusted minWidth to prevent wrapping */}
             <Paper
               elevation={0}
               sx={{
@@ -321,39 +343,39 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 wordBreak: 'break-word',
                 color: isUser ? '#13111C' : 'white',
               }}>
-                <ReactMarkdown>{content}</ReactMarkdown>
+                <ReactMarkdown>{textContent}</ReactMarkdown>
               </Typography>
             </Paper>
             {message.role === 'assistant' && (
-            <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-              <IconButton 
-                size="small" 
-                onClick={() => handleLike(index)}
-                sx={{
-                  color: message.liked ? '#ABFFF3' : 'rgba(255,255,255,0.5)',
-                  '&:hover': {
-                    color: '#ABFFF3',
-                    background: 'rgba(224, 195, 252, 0.1)'
-                  }
-                }}
-              >
-                <ThumbUpIcon fontSize="small" />
-              </IconButton>
-              <IconButton 
-                size="small" 
-                onClick={() => handleDislike(index)}
-                sx={{
-                  color: message.disliked ? '#FF6B6B' : 'rgba(255,255,255,0.5)',
-                  '&:hover': {
-                    color: '#FF6B6B',
-                    background: 'rgba(255,107,107,0.1)'
-                  }
-                }}
-              >
-                <ThumbDownIcon fontSize="small" />
-              </IconButton>
-            </Box>
-          )}
+              <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                <IconButton
+                  size="small"
+                  onClick={() => handleLike(index)}
+                  sx={{
+                    color: message.liked ? '#ABFFF3' : 'rgba(255,255,255,0.5)',
+                    '&:hover': {
+                      color: '#ABFFF3',
+                      background: 'rgba(224, 195, 252, 0.1)'
+                    }
+                  }}
+                >
+                  <ThumbUpIcon fontSize="small" />
+                </IconButton>
+                <IconButton
+                  size="small"
+                  onClick={() => handleDislike(index)}
+                  sx={{
+                    color: message.disliked ? '#FF6B6B' : 'rgba(255,255,255,0.5)',
+                    '&:hover': {
+                      color: '#FF6B6B',
+                      background: 'rgba(255,107,107,0.1)'
+                    }
+                  }}
+                >
+                  <ThumbDownIcon fontSize="small" />
+                </IconButton>
+              </Box>
+            )}
           </Box>
         </Box>
       </Box>
@@ -369,9 +391,9 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
   };
 
   return (
-    <Box sx={{ 
-      height: '100%', 
-      display: 'flex', 
+    <Box sx={{
+      height: '100%',
+      display: 'flex',
       flexDirection: 'column',
       background: 'linear-gradient(135deg, rgba(22, 35, 63, 0.95) 10%, rgba(49, 46, 129, 0.95) 100%)',
       borderRadius: '0px',
@@ -403,11 +425,11 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         pointerEvents: 'none',
       }
     }}>
-      <Box sx={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center', 
-        px: 2, 
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        px: 2,
         py: 2.2,
         borderBottom: '1px solid rgba(255,255,255,0.1)',
         background: 'linear-gradient(135deg, rgba(13, 15, 35, 0.98) 0%, rgba(29, 37, 92, 0.95) 100%)',
@@ -415,20 +437,20 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         position: 'relative',
         zIndex: 1,
       }}>
-        <IconButton onClick={onClose} size="small" sx={{ 
+        <IconButton onClick={onClose} size="small" sx={{
           color: 'rgba(255,255,255,0.7)',
           '&:hover': {
             color: '#E0C3FC',
             background: 'rgba(224, 195, 252, 0.1)'
           }
         }}>
-          <MenuOpenIcon sx={{ 
+          <MenuOpenIcon sx={{
             transform: 'rotate(180deg)',
             transition: 'transform 0.3s ease'
           }} />
         </IconButton>
 
-        <Typography variant="h6" sx={{ 
+        <Typography variant="h6" sx={{
           fontWeight: 700,
           background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
           backgroundClip: 'text',
@@ -438,10 +460,10 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           textShadow: '0 2px 10px rgba(224, 195, 252, 0.2)',
         }}>AI Assistant</Typography>
 
-        <IconButton 
+        <IconButton
           onClick={handleClearChat}
-          size="small" 
-          sx={{ 
+          size="small"
+          sx={{
             color: 'rgba(255,255,255,0.7)',
             '&:hover': {
               color: '#E0C3FC',
@@ -511,11 +533,12 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         )}
       </Box>
       <Box sx={{ p: 2, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(5px)' }}>
+        {/* Only show fileInfo preview above input area, not in chat history */}
         {fileInfo && (
-          <Box sx={{ 
-            mb: 1, 
-            display: 'flex', 
-            gap: 1, 
+          <Box sx={{
+            mb: 1,
+            display: 'flex',
+            gap: 1,
             alignItems: 'center',
             background: 'rgba(255,255,255,0.13)',
             py: 1.2,
@@ -525,7 +548,7 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             boxShadow: '0 1px 4px rgba(224, 195, 252, 0.10)',
             width: 'fit-content',
           }}>
-            <Avatar sx={{ bgcolor: 'rgba(134, 106, 226, 0.9)', width: 28, height: 28, fontSize: 18 }}> <DescriptionIcon sx={{ color: '#fff', fontSize: 18 }} /> </Avatar>
+            <Avatar sx={{ bgcolor: '#8086bf', width: 28, height: 28, fontSize: 18 }}> <DescriptionIcon sx={{ color: '#fff', fontSize: 18 }} /> </Avatar>
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>
                 {fileInfo.name}
@@ -533,14 +556,14 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
               <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', fontWeight: 400 }}>
                 {fileInfo.type}
               </Typography>
-          </Box>
+            </Box>
             <IconButton
               size="small"
               onClick={() => {
                 setFileInfo(null);
                 setFile(null);
               }}
-              sx={{ 
+              sx={{
                 color: 'rgba(255,255,255,0.7)',
                 '&:hover': {
                   color: '#FF6B6B',
@@ -553,8 +576,8 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             </IconButton>
           </Box>
         )}
-        <Box sx={{ 
-          display: 'flex', 
+        <Box sx={{
+          display: 'flex',
           background: 'rgba(255,255,255,0.10)',
           p: 1.5,
           borderRadius: 2,
@@ -563,7 +586,7 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           alignItems: 'center',
         }}>
           <label htmlFor="file-upload">
-            <IconButton component="span" sx={{ 
+            <IconButton component="span" sx={{
               color: 'rgba(255,255,255,0.7)',
               '&:hover': {
                 color: '#E0C3FC',
@@ -591,7 +614,7 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             disabled={isLoading}
             InputProps={{
               disableUnderline: true,
-              sx: { 
+              sx: {
                 color: 'white',
                 fontSize: 16,
                 width: '360px', // Make input wider
@@ -599,21 +622,21 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
                 background: 'transparent',
                 border: 'none',
                 '& input': {
-                  paddingTop: '8px', 
-                  paddingBottom: '8px', 
+                  paddingTop: '8px',
+                  paddingBottom: '8px',
                   paddingLeft: '10px',
                 },
                 '& input::placeholder': {
                   color: 'rgba(255,255,255,0.5)',
-                  opacity: 1,  
-                  verticalAlign: 'middle', 
+                  opacity: 1,
+                  verticalAlign: 'middle',
                 },
               }
             }}
           />
-          <IconButton 
+          <IconButton
             onClick={handleVoiceInput}
-            sx={{ 
+            sx={{
               color: isListening ? '#E0C3FC' : 'rgba(255,255,255,0.7)',
               animation: isListening ? `${pulseAnimation} 1.5s infinite` : 'none',
               '&:hover': {
@@ -625,11 +648,11 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
           >
             <MicIcon />
           </IconButton>
-          <IconButton 
+          <IconButton
             onClick={handleSend}
             disabled={isLoading}
             sx={{
-              background: 'linear-gradient(215deg, #a3c1e2 0%, #7a8cc2 100%)', 
+              background: 'linear-gradient(215deg, #a3c1e2 0%, #7a8cc2 100%)',
               color: '#ffffff',
               borderRadius: 2,
               '&:hover': {
