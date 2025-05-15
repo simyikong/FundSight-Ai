@@ -1,6 +1,9 @@
 from fastapi import FastAPI 
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1 import chat
+from app.api.v1 import chat, document, metrics
+from app.models.document import init_db
+from app.core.database import engine
+from app.models.document import Base
 
 app = FastAPI() 
 
@@ -13,8 +16,13 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Initialize database
+Base.metadata.create_all(bind=engine)
+
 # Include all routers
 app.include_router(chat.router, prefix="/api/v1", tags=["chat"])
+app.include_router(document.router, prefix="/api/v1", tags=["document"])
+app.include_router(metrics.router, prefix="/api/v1", tags=["metrics"])
 
 @app.get("/") 
 def read_root(): 

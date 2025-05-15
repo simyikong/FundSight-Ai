@@ -36,7 +36,7 @@ import {
   DocumentType, 
   formatDate, 
   isDocumentOutdated 
-} from './types';
+} from '../../components/types';
 
 interface DocumentUploadSectionProps {
   documents: UploadedDocument[];

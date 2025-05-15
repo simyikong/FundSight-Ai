@@ -2,3 +2,12 @@ fastapi
 uvicorn
 python-dotenv
 qwen-agent[gui,rag,code_interpreter,mcp]
+openai
+sqlalchemy
+pydantic
+pytesseract
+pdf2image
+pandas
+python-multipart
+tabulate
+Pillow

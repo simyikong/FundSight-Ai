@@ -16,7 +16,7 @@ import {
   Grid
 } from '@mui/material';
 import { AccountBalance, CheckCircle, InfoOutlined } from '@mui/icons-material';
-import { LoanRecommendation, LOAN_PURPOSES } from './types';
+import { LoanRecommendation, LOAN_PURPOSES } from '../../components/types';
 
 interface LoanRecommendationSectionProps {
   loanPurpose: string;

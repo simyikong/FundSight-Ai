@@ -51,6 +51,16 @@ export interface FinancialMetrics {
   lastUpdated: Date;
 }
 
+export interface LoanRecommendation {
+  id: number;
+  name: string;
+  provider: string;
+  amount: string;
+  interestRate: string;
+  eligibilitySummary: string;
+  reasons: string[];
+}
+
 // Constants
 export const COMPANY_TYPES = [
   'Sole Proprietorship',
@@ -90,6 +100,17 @@ export const DOCUMENT_TYPE_LABELS: Record<string, string> = {
   'bankStatement': 'Bank Statement',
   'invoices': 'Invoices'
 };
+
+// Constants
+export const LOAN_PURPOSES = [
+  'Equipment',
+  'Payroll',
+  'Expansion',
+  'Inventory',
+  'Working Capital',
+  'Debt Refinancing',
+  'Other'
+];
 
 // Helper functions
 export const formatCurrency = (value: number | string): string => {
