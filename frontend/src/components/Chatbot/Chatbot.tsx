@@ -57,7 +57,13 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         navigate('/dashboard');
         break;
       case 'Loan':
-        navigate('/loan');
+        navigate('/funding-recommendations');
+        break;
+      case 'Profile':
+        navigate('/company-profile');
+        break;
+      case 'Document':
+        navigate('/financial-records');
         break;
       default:
         console.log('Unknown tab');
@@ -99,11 +105,13 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       };
       const llm_response = await chatApi.sendMessage(messageData);
 
+      console.log('llm_response', llm_response);
       let content: string;
       if (typeof llm_response.data.response === 'string') {
         content = llm_response.data.response;
       } else if (typeof llm_response.data.response === 'object' && llm_response.data.response !== null) {
-        content = llm_response.data.response.message;
+        const responseObject = JSON.parse(llm_response.data.response);
+        content = responseObject.message;
       } else {
         content = 'Unexpected response format.';
       }
