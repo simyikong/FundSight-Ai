@@ -41,7 +41,7 @@ def _clean_ollama_response(text):
     cleaned_lines = [line.strip() for line in lines if line.strip() != ""]
     
     return "\n".join(cleaned_lines)
-
+    
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     try:
@@ -78,10 +78,14 @@ async def chat(request: ChatRequest):
             llm_response = response_text
         
         switch_tab = None
-        if agent_name == 'FinancialAgent':
+        if agent_name == 'FinancialAgent'or agent_name == 'BudgetAgent':
             switch_tab = 'Dashboard'
         elif agent_name == 'LoanAgent':
             switch_tab = 'Loan'
+        elif agent_name == 'DocumentAgent':
+            switch_tab = 'Document'
+        elif agent_name == 'ProfileAgent':
+            switch_tab = 'Profile'
 
         return {"response": llm_response, "switch_tab": switch_tab}
 

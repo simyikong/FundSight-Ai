@@ -18,7 +18,21 @@ Respond concisely to the user's query.
 
 class ProfileAgent(BaseAgent):
     def __init__(self, model_name=None):
-        super().__init__(model_name=model_name, system_message=PROFILE_PROMPT.strip())
+        super().__init__(
+            model_name=model_name, 
+            system_message=PROFILE_PROMPT.strip(), 
+            name="Profile Agent", 
+            description="Profile Agent to answer queries about company profile"
+        )
 
     def handle(self, messages):
-        yield from self.agent.run(messages)
+        # messages.append({"role": "user", "content": [{'file': 'https://www.smecorp.gov.my/images/pdf/SMEFINANCING.pdf'}]})
+        logger.info(f"Profile agent processing request with messages: {messages}")
+        try:
+            response_plain_text = ''
+            for response in self.agent.run(messages=messages):
+                response_plain_text = typewriter_print(response, response_plain_text)
+            return response_plain_text
+        except Exception as e:
+            logger.error(f"Error processing request in Profile Agent:: {str(e)}", exc_info=True)
+            raise
