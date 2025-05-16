@@ -189,10 +189,10 @@ const Dashboard: React.FC = () => {
   const healthScoreColors = ['#4CAF50', '#23263a'];
 
   return (
-    <Container maxWidth="xl" sx={{ mt: 4, mb: 4, bgcolor: '#11131a', minHeight: '100vh', borderRadius: 3, p: 3 }}>
+    <Container maxWidth="xl" sx={{ mt: 4, mb: 4, bgcolor: theme.palette.background.default, minHeight: '100vh', borderRadius: 3, p: 3 }}>
       {/* Header */}
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 'bold', color: '#2196F3' }}>
+        <Typography variant="h4" sx={{ fontWeight: 'bold', color: theme.palette.primary.main }}>
           Financial Dashboard
         </Typography>
         <Box>
@@ -200,7 +200,7 @@ const Dashboard: React.FC = () => {
             variant="contained"
             startIcon={<Download />}
             onClick={handleReportClick}
-            sx={{ background: '#1976d2', color: '#fff', '&:hover': { background: '#1565c0' }, mr: 2 }}
+            sx={{ background: theme.palette.primary.main, color: theme.palette.primary.contrastText, '&:hover': { background: theme.palette.primary.dark }, mr: 2 }}
           >
             Download Reports
           </Button>
@@ -220,13 +220,13 @@ const Dashboard: React.FC = () => {
       <Grid container spacing={3} sx={{ mb: 3 }}>
         {/* Health Score Ring Chart */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ position: 'relative', height: '100%', background: 'linear-gradient(145deg, #181a23 0%, #23263a 100%)', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', borderRadius: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 2 }}>
+          <Card sx={{ position: 'relative', height: '100%', background: theme.palette.background.paper, boxShadow: 3, borderRadius: 2, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', p: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-              <Typography variant="subtitle2" sx={{ color: '#bfc7d5' }}>
+              <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary }}>
                 Financial Health Score
               </Typography>
               <Tooltip title="A score representing your overall financial health based on various metrics.">
-                <InfoOutlined fontSize="small" sx={{ color: '#bfc7d5', cursor: 'pointer' }} />
+                <InfoOutlined fontSize="small" sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }} />
               </Tooltip>
             </Box>
             <PieChart width={120} height={120}>
@@ -240,63 +240,62 @@ const Dashboard: React.FC = () => {
                 endAngle={-270}
                 dataKey="value"
               >
-                {healthScoreData.map((entry, idx) => (
-                  <Cell key={`cell-${idx}`} fill={healthScoreColors[idx]} />
-                ))}
+                <Cell key="cell-0" fill={theme.palette.success.main} />
+                <Cell key="cell-1" fill={theme.palette.background.paper} />
               </Pie>
             </PieChart>
             <Box sx={{ position: 'absolute', top: 80, left: 0, width: '100%', textAlign: 'center', pointerEvents: 'none' }}>
-              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 'bold' }}>{healthScore}</Typography>
-              <Typography variant="caption" sx={{ color: '#bfc7d5' }}>out of 100</Typography>
+              <Typography variant="h5" sx={{ color: theme.palette.text.primary, fontWeight: 'bold' }}>{healthScore}</Typography>
+              <Typography variant="caption" sx={{ color: theme.palette.text.secondary }}>out of 100</Typography>
             </Box>
           </Card>
         </Grid>
         {/* Other Metrics with Tooltips */}
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', background: 'linear-gradient(145deg, #181a23 0%, #23263a 100%)', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', borderRadius: 2 }}>
+          <Card sx={{ height: '100%', background: theme.palette.background.paper, boxShadow: 3, borderRadius: 2 }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ color: '#bfc7d5' }}>
+                <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary }}>
                   Monthly Revenue
                 </Typography>
                 <Tooltip title="Total income generated in the selected period.">
-                  <InfoOutlined fontSize="small" sx={{ color: '#bfc7d5', cursor: 'pointer' }} />
+                  <InfoOutlined fontSize="small" sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }} />
                 </Tooltip>
               </Box>
-              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 'bold' }}>$25,000</Typography>
-              <Typography variant="body2" sx={{ color: '#4CAF50' }}>+12.5% from last month</Typography>
+              <Typography variant="h5" sx={{ color: theme.palette.text.primary, fontWeight: 'bold' }}>$25,000</Typography>
+              <Typography variant="body2" sx={{ color: theme.palette.success.main }}>+12.5% from last month</Typography>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', background: 'linear-gradient(145deg, #181a23 0%, #23263a 100%)', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', borderRadius: 2 }}>
+          <Card sx={{ height: '100%', background: theme.palette.background.paper, boxShadow: 3, borderRadius: 2 }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ color: '#bfc7d5' }}>
+                <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary }}>
                   Monthly Expenses
                 </Typography>
                 <Tooltip title="Total costs incurred in the selected period.">
-                  <InfoOutlined fontSize="small" sx={{ color: '#bfc7d5', cursor: 'pointer' }} />
+                  <InfoOutlined fontSize="small" sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }} />
                 </Tooltip>
               </Box>
-              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 'bold' }}>$18,500</Typography>
-              <Typography variant="body2" sx={{ color: '#FF5252' }}>-2.1% from last month</Typography>
+              <Typography variant="h5" sx={{ color: theme.palette.text.primary, fontWeight: 'bold' }}>$18,500</Typography>
+              <Typography variant="body2" sx={{ color: theme.palette.error.main }}>-2.1% from last month</Typography>
             </CardContent>
           </Card>
         </Grid>
         <Grid item xs={12} sm={6} md={3}>
-          <Card sx={{ height: '100%', background: 'linear-gradient(145deg, #181a23 0%, #23263a 100%)', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', borderRadius: 2 }}>
+          <Card sx={{ height: '100%', background: theme.palette.background.paper, boxShadow: 3, borderRadius: 2 }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                <Typography variant="subtitle2" sx={{ color: '#bfc7d5' }}>
+                <Typography variant="subtitle2" sx={{ color: theme.palette.text.secondary }}>
                   Cash Balance
                 </Typography>
                 <Tooltip title="Current available cash in your business accounts.">
-                  <InfoOutlined fontSize="small" sx={{ color: '#bfc7d5', cursor: 'pointer' }} />
+                  <InfoOutlined fontSize="small" sx={{ color: theme.palette.text.secondary, cursor: 'pointer' }} />
                 </Tooltip>
               </Box>
-              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 'bold' }}>$45,000</Typography>
-              <Typography variant="body2" sx={{ color: '#4CAF50' }}>+8.4% from last month</Typography>
+              <Typography variant="h5" sx={{ color: theme.palette.text.primary, fontWeight: 'bold' }}>$45,000</Typography>
+              <Typography variant="body2" sx={{ color: theme.palette.success.main }}>+8.4% from last month</Typography>
             </CardContent>
           </Card>
         </Grid>
@@ -309,37 +308,37 @@ const Dashboard: React.FC = () => {
             sx={{ 
               p: 3,
               height: '100%',
-              background: 'linear-gradient(145deg, #181a23 0%, #23263a 100%)',
-              boxShadow: '0 4px 20px rgba(0,0,0,0.15)',
+              background: theme.palette.background.paper,
+              boxShadow: 3,
               borderRadius: 2
             }}
           >
-            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3, color: '#fff' }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3, color: theme.palette.text.primary }}>
               Revenue vs Expenses
             </Typography>
             <Box sx={{ height: 350 }}>
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={chartData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#33364a" />
-                  <XAxis dataKey="name" stroke="#bfc7d5" />
-                  <YAxis stroke="#bfc7d5" />
-                  <RechartsTooltip contentStyle={{ background: '#23263a', border: 'none', color: '#fff' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={theme.palette.divider} />
+                  <XAxis dataKey="name" stroke={theme.palette.text.secondary} />
+                  <YAxis stroke={theme.palette.text.secondary} />
+                  <RechartsTooltip contentStyle={{ background: theme.palette.background.paper, border: 'none', color: theme.palette.text.primary }} />
                   <Line 
                     type="monotone" 
                     dataKey="revenue" 
-                    stroke="#2196F3" 
+                    stroke={theme.palette.primary.main} 
                     name="Revenue"
                   />
                   <Line 
                     type="monotone" 
                     dataKey="expenses" 
-                    stroke="#FF9800" 
+                    stroke={theme.palette.warning.main} 
                     name="Expenses"
                   />
                   <Line 
                     type="monotone" 
                     dataKey="budget" 
-                    stroke="#4CAF50" 
+                    stroke={theme.palette.success.main} 
                     name="Budget"
                     strokeDasharray="5 5"
                   />
@@ -349,36 +348,36 @@ const Dashboard: React.FC = () => {
           </Paper>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, background: 'linear-gradient(145deg, #181a23 0%, #23263a 100%)', color: '#fff', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', borderRadius: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3, color: '#fff' }}>
+          <Paper sx={{ p: 3, background: theme.palette.background.paper, color: theme.palette.text.primary, boxShadow: 3, borderRadius: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3, color: theme.palette.text.primary }}>
               Financial Reports
             </Typography>
             <Grid container spacing={2}>
               <Grid item xs={12}>
-                <Card sx={{ background: 'none', boxShadow: 'none', color: '#fff', border: '1px solid #33364a', mb: 2 }}>
+                <Card sx={{ background: 'none', boxShadow: 'none', color: theme.palette.text.primary, border: `1px solid ${theme.palette.divider}`, mb: 2 }}>
                   <CardContent>
                     <Typography variant="h6">Profit & Loss Statement</Typography>
-                    <Button variant="outlined" fullWidth sx={{ mt: 2, color: '#2196F3', borderColor: '#2196F3' }}>
+                    <Button variant="outlined" fullWidth sx={{ mt: 2, color: theme.palette.primary.main, borderColor: theme.palette.primary.main }}>
                       Download
                     </Button>
                   </CardContent>
                 </Card>
               </Grid>
               <Grid item xs={12}>
-                <Card sx={{ background: 'none', boxShadow: 'none', color: '#fff', border: '1px solid #33364a', mb: 2 }}>
+                <Card sx={{ background: 'none', boxShadow: 'none', color: theme.palette.text.primary, border: `1px solid ${theme.palette.divider}`, mb: 2 }}>
                   <CardContent>
                     <Typography variant="h6">Cash Flow Statement</Typography>
-                    <Button variant="outlined" fullWidth sx={{ mt: 2, color: '#2196F3', borderColor: '#2196F3' }}>
+                    <Button variant="outlined" fullWidth sx={{ mt: 2, color: theme.palette.primary.main, borderColor: theme.palette.primary.main }}>
                       Download
                     </Button>
                   </CardContent>
                 </Card>
               </Grid>
               <Grid item xs={12}>
-                <Card sx={{ background: 'none', boxShadow: 'none', color: '#fff', border: '1px solid #33364a' }}>
+                <Card sx={{ background: 'none', boxShadow: 'none', color: theme.palette.text.primary, border: `1px solid ${theme.palette.divider}` }}>
                   <CardContent>
                     <Typography variant="h6">Balance Sheet</Typography>
-                    <Button variant="outlined" fullWidth sx={{ mt: 2, color: '#2196F3', borderColor: '#2196F3' }}>
+                    <Button variant="outlined" fullWidth sx={{ mt: 2, color: theme.palette.primary.main, borderColor: theme.palette.primary.main }}>
                       Download
                     </Button>
                   </CardContent>
@@ -392,16 +391,16 @@ const Dashboard: React.FC = () => {
       {/* Budget Planner & Recommendations Row */}
       <Grid container spacing={3}>
         <Grid item xs={12} md={8}>
-          <Paper sx={{ p: 3, background: 'linear-gradient(145deg, #181a23 0%, #23263a 100%)', color: '#fff', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', borderRadius: 2 }}>
+          <Paper sx={{ p: 3, background: theme.palette.background.paper, color: theme.palette.text.primary, boxShadow: 3, borderRadius: 2 }}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-              <Typography variant="h6" sx={{ fontWeight: 'bold', color: '#fff' }}>
+              <Typography variant="h6" sx={{ fontWeight: 'bold', color: theme.palette.text.primary }}>
                 Budget Planner
               </Typography>
               <Button
                 variant="contained"
                 startIcon={<Add />}
                 onClick={() => {/* Implement add category */}}
-                sx={{ background: '#1976d2', color: '#fff', '&:hover': { background: '#1565c0' } }}
+                sx={{ background: theme.palette.primary.main, color: theme.palette.primary.contrastText, '&:hover': { background: theme.palette.primary.dark } }}
               >
                 Add Category
               </Button>
@@ -412,11 +411,10 @@ const Dashboard: React.FC = () => {
                   key={category.id}
                   sx={{
                     mb: 2,
-                    border: '1px solid',
-                    borderColor: '#33364a',
+                    border: `1px solid ${theme.palette.divider}`,
                     borderRadius: 1,
-                    bgcolor: '#23263a',
-                    color: '#fff',
+                    bgcolor: theme.palette.background.paper,
+                    color: theme.palette.text.primary,
                   }}
                 >
                   <ListItemIcon>
@@ -427,14 +425,14 @@ const Dashboard: React.FC = () => {
                     )}
                   </ListItemIcon>
                   <ListItemText
-                    primary={<span style={{ color: '#fff', fontWeight: 500 }}>{category.name}</span>}
+                    primary={<span style={{ color: theme.palette.text.primary, fontWeight: 500 }}>{category.name}</span>}
                     secondary={
                       <Box sx={{ mt: 1 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                          <Typography variant="body2" sx={{ color: '#bfc7d5' }}>
+                          <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
                             Spent: ${category.spent.toLocaleString()}
                           </Typography>
-                          <Typography variant="body2" sx={{ color: '#bfc7d5' }}>
+                          <Typography variant="body2" sx={{ color: theme.palette.text.secondary }}>
                             Budget: ${category.allocated.toLocaleString()}
                           </Typography>
                         </Box>
@@ -442,13 +440,13 @@ const Dashboard: React.FC = () => {
                           variant="determinate"
                           value={Math.min(getUtilizationPercentage(category.spent, category.allocated), 100)}
                           color={getUtilizationColor(getUtilizationPercentage(category.spent, category.allocated))}
-                          sx={{ height: 8, borderRadius: 4, bgcolor: '#181a23' }}
+                          sx={{ height: 8, borderRadius: 4, bgcolor: theme.palette.background.paper }}
                         />
                       </Box>
                     }
                   />
                   <IconButton onClick={() => handleOpenDialog(category)}>
-                    <Edit sx={{ color: '#bfc7d5' }} />
+                    <Edit sx={{ color: theme.palette.text.secondary }} />
                   </IconButton>
                 </ListItem>
               ))}
@@ -456,9 +454,9 @@ const Dashboard: React.FC = () => {
           </Paper>
         </Grid>
         <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, background: 'linear-gradient(145deg, #181a23 0%, #23263a 100%)', color: '#fff', boxShadow: '0 4px 20px rgba(0,0,0,0.15)', borderRadius: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2, color: '#fff', display: 'flex', alignItems: 'center' }}>
-              <Lightbulb sx={{ mr: 1, color: 'warning.main' }} />
+          <Paper sx={{ p: 3, background: theme.palette.background.paper, color: theme.palette.text.primary, boxShadow: 3, borderRadius: 2 }}>
+            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 2, color: theme.palette.text.primary, display: 'flex', alignItems: 'center' }}>
+              <Lightbulb sx={{ mr: 1, color: theme.palette.warning.main }} />
               Smart Recommendations
             </Typography>
             <List>
@@ -466,8 +464,8 @@ const Dashboard: React.FC = () => {
                 category.recommendations?.map((rec, index) => (
                   <ListItem key={`${category.id}-${index}`} sx={{ py: 1 }}>
                     <ListItemText
-                      primary={<span style={{ color: '#fff' }}>{rec}</span>}
-                      secondary={<span style={{ color: '#bfc7d5' }}>{category.name}</span>}
+                      primary={<span style={{ color: theme.palette.text.primary }}>{rec}</span>}
+                      secondary={<span style={{ color: theme.palette.text.secondary }}>{category.name}</span>}
                     />
                   </ListItem>
                 ))
