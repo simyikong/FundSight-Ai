@@ -347,45 +347,6 @@ const Dashboard: React.FC = () => {
             </Box>
           </Paper>
         </Grid>
-        <Grid item xs={12} md={4}>
-          <Paper sx={{ p: 3, background: theme.palette.background.paper, color: theme.palette.text.primary, boxShadow: 3, borderRadius: 2 }}>
-            <Typography variant="h6" sx={{ fontWeight: 'bold', mb: 3, color: theme.palette.text.primary }}>
-              Financial Reports
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <Card sx={{ background: 'none', boxShadow: 'none', color: theme.palette.text.primary, border: `1px solid ${theme.palette.divider}`, mb: 2 }}>
-                  <CardContent>
-                    <Typography variant="h6">Profit & Loss Statement</Typography>
-                    <Button variant="outlined" fullWidth sx={{ mt: 2, color: theme.palette.primary.main, borderColor: theme.palette.primary.main }}>
-                      Download
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12}>
-                <Card sx={{ background: 'none', boxShadow: 'none', color: theme.palette.text.primary, border: `1px solid ${theme.palette.divider}`, mb: 2 }}>
-                  <CardContent>
-                    <Typography variant="h6">Cash Flow Statement</Typography>
-                    <Button variant="outlined" fullWidth sx={{ mt: 2, color: theme.palette.primary.main, borderColor: theme.palette.primary.main }}>
-                      Download
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Grid>
-              <Grid item xs={12}>
-                <Card sx={{ background: 'none', boxShadow: 'none', color: theme.palette.text.primary, border: `1px solid ${theme.palette.divider}` }}>
-                  <CardContent>
-                    <Typography variant="h6">Balance Sheet</Typography>
-                    <Button variant="outlined" fullWidth sx={{ mt: 2, color: theme.palette.primary.main, borderColor: theme.palette.primary.main }}>
-                      Download
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Grid>
-            </Grid>
-          </Paper>
-        </Grid>
       </Grid>
 
       {/* Budget Planner & Recommendations Row */}
