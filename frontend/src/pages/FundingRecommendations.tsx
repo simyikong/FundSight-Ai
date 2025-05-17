@@ -46,11 +46,11 @@ interface RecommendationHistory {
 
 const FundingRecommendations: React.FC = () => {
   // Loan recommendation state
-  const [loanPurpose, setLoanPurpose] = useState('');
-  const [loanAmount, setLoanAmount] = useState('');
-  const [additionalContext, setAdditionalContext] = useState('');
+  const [loanPurpose, setLoanPurpose] = useState('');  // Default value for demo
+  const [loanAmount, setLoanAmount] = useState('');  // Default value for demo
+  const [additionalContext, setAdditionalContext] = useState('');  // Default context
   const [recommendations, setRecommendations] = useState<LoanRecommendation[]>([]);
-  const [isRecommendationEnabled, setIsRecommendationEnabled] = useState(false);
+  const [isRecommendationEnabled, setIsRecommendationEnabled] = useState(false); // Enable by default for demo
   const [isGenerating, setIsGenerating] = useState(false);
   
   // History state
@@ -97,10 +97,19 @@ const FundingRecommendations: React.FC = () => {
       
       // Generate recommendations automatically when loan data is received
       if (loanData.suggest_loan) {
-        fetchRecommendations();
+        setTimeout(() => fetchRecommendations(), 500); // Add delay to ensure state is updated
       }
     }
   }, [location.state]);
+
+  // Automatically fetch recommendations when component mounts if we have default values
+  useEffect(() => {
+    // If we have default values and no recommendations yet, fetch them
+    if (loanPurpose && loanAmount && recommendations.length === 0 && !isGenerating) {
+      console.log("Using default values to fetch recommendations");
+      setTimeout(() => fetchRecommendations(), 1000);
+    }
+  }, [companyId]); // Only run when companyId is available
 
   // Check if user has completed their profile using the API
   useEffect(() => {
@@ -151,23 +160,24 @@ const FundingRecommendations: React.FC = () => {
       return;
     }
 
-    if (!loanPurpose || !loanAmount) {
-      setError('Please provide both loan purpose and amount');
-      return;
-    }
+    // Always use the current state values
+    const currentLoanPurpose = loanPurpose || 'Working Capital';
+    const currentLoanAmount = loanAmount || '100000';
 
     setIsGenerating(true);
     setError(null);
     
     try {
+      console.log(`Fetching recommendations with purpose: ${currentLoanPurpose}, amount: ${currentLoanAmount}`);
       const response = await axios.post(`${API_BASE_URL}/funding/recommendations`, {
         company_id: companyId,
-        funding_purpose: loanPurpose,
-        requested_amount: parseFloat(loanAmount),
+        funding_purpose: currentLoanPurpose,
+        requested_amount: parseFloat(currentLoanAmount),
         additional_context: additionalContext || undefined
       });
       
       if (response.data && response.data.recommendations) {
+        console.log(`Received ${response.data.recommendations.length} recommendations`);
         setRecommendations(response.data.recommendations);
       } else {
         setError('Received an invalid response from the server');

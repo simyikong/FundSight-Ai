@@ -277,7 +277,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData, input }) 
   };
 
   const quickStarts = [
-    "Suggest me some loans",
+    "Suggest me some grants",
     "What is my revenue growth?",
     "How can I reduce cost?"
   ];
