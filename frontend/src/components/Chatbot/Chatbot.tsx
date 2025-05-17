@@ -54,7 +54,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData, input }) 
   // Effect for Ask AI button action (sets input value when input prop changes)
   function useAskAIPromptEffect(input: string | undefined) {
     useEffect(() => {
-      setInputValue("Analyze the financial health score (69.17) and provide suggestions for improvement.");
+      setInputValue("Analyze the financial health score of 69.17% and provide suggestions for improvement.");
     }, [input]);
   }
   useAskAIPromptEffect(input);
