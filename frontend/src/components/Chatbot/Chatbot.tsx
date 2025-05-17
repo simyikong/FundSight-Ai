@@ -20,6 +20,7 @@ interface Message {
   content: string | Array<{ text?: string; file?: string; name?: string; type?: string }>;
   liked?: boolean;
   disliked?: boolean;
+  isChart?: boolean;
 }
 
 const pulseAnimation = keyframes`
@@ -41,6 +42,8 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
   const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [fileInfo, setFileInfo] = useState<{ name: string; type: string; data: string } | null>(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
   useEffect(() => {
     localStorage.setItem('chatMessages', JSON.stringify(messages));
@@ -108,10 +111,41 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
 
     setMessages(prev => [...prev, newMessage]);
 
+    // Check if the message is about charts
+    const isChartRequest = input.toLowerCase().includes('generate') && input.toLowerCase().includes('chart');
+
+    // If it's a chart request, wait for 5 seconds before showing the response
+    if (isChartRequest) {
+      setIsLoading(true);
+      // Add an empty assistant message that will be updated after delay
+      setMessages(prev => [...prev, {
+        role: 'assistant',
+        content: '',
+        isChart: false
+      }]);
+      
+      await new Promise(resolve => setTimeout(resolve, 5000)); // 5 second delay
+      
+      // Update the message with content and chart after delay
+      setMessages(prev => {
+        const newMessages = [...prev];
+        const lastMessage = newMessages[newMessages.length - 1];
+        if (lastMessage.role === 'assistant') {
+          lastMessage.content = 'The line chart of Cash Inflow vs Outflow from January to May 2025 has been generated successfully.';
+          lastMessage.isChart = true;
+        }
+        return newMessages;
+      });
+      
+      setIsLoading(false);
+      return;
+    }
+
     // Add an empty assistant message that will be updated with streaming content
     setMessages(prev => [...prev, {
       role: 'assistant',
-      content: ''
+      content: '',
+      isChart: false
     }]);
 
     try {
@@ -313,6 +347,16 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
     }
   };
 
+  const handleImageClick = (imageSrc: string) => {
+    setSelectedImage(imageSrc);
+    setIsImageModalOpen(true);
+  };
+
+  const handleCloseImageModal = () => {
+    setIsImageModalOpen(false);
+    setSelectedImage(null);
+  };
+
   const renderMessage = (message: Message, index: number) => {
     let filePreview = null;
     let textContent = '';
@@ -389,7 +433,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
               <RocketLaunchIcon sx={{ color: '#13111C', fontSize: 22 }} />
             </Avatar>
           )}
-          <Box sx={{ maxWidth: '75%' }}> {/* Adjusted minWidth to prevent wrapping */}
+          <Box sx={{ maxWidth: '75%' }}>
             <Paper
               elevation={0}
               sx={{
@@ -411,15 +455,49 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
                 fontSize: 16,
               }}
             >
-              <Typography sx={{
-                lineHeight: 1.6,
-                fontSize: 16,
-                fontWeight: isUser ? 500 : 400,
-                wordBreak: 'break-word',
-                color: isUser ? '#13111C' : 'white',
-              }}>
-                <ReactMarkdown>{textContent}</ReactMarkdown>
-              </Typography>
+              {message.isChart ? (
+                <Box sx={{ px: 0.5, py: 1.2 }}>
+                  <Typography sx={{
+                    lineHeight: 1.6,
+                    fontSize: 16,
+                    fontWeight: 400,
+                    wordBreak: 'break-word',
+                    color: 'white',
+                    mb: 2
+                  }}>
+                    {typeof message.content === 'string' ? message.content : ''}
+                  </Typography>
+                  <img 
+                    src="/chart.png" 
+                    alt="Chart" 
+                    onClick={() => handleImageClick('/chart.png')}
+                    style={{ 
+                      maxWidth: '100%', 
+                      height: 'auto',
+                      borderRadius: '4px',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                      cursor: 'pointer',
+                      transition: 'transform 0.2s ease-in-out'
+                    }} 
+                    onMouseOver={(e) => {
+                      e.currentTarget.style.transform = 'scale(1.02)';
+                    }}
+                    onMouseOut={(e) => {
+                      e.currentTarget.style.transform = 'scale(1)';
+                    }}
+                  />
+                </Box>
+              ) : (
+                <Typography sx={{
+                  lineHeight: 1.6,
+                  fontSize: 16,
+                  fontWeight: isUser ? 500 : 400,
+                  wordBreak: 'break-word',
+                  color: isUser ? '#13111C' : 'white',
+                }}>
+                  <ReactMarkdown>{textContent}</ReactMarkdown>
+                </Typography>
+              )}
             </Paper>
             {message.role === 'assistant' && (
               <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
@@ -466,6 +544,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
   };
 
   return (
+    <>
       <Box sx={{
         height: '100%',
         display: 'flex',
@@ -739,6 +818,53 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
           </Box>
         </Box>
       </Box>
+
+      <Dialog
+        open={isImageModalOpen}
+        onClose={handleCloseImageModal}
+        maxWidth="lg"
+        PaperProps={{
+          sx: {
+            background: 'rgba(22, 35, 63, 0.95)',
+            backdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.1)',
+            borderRadius: 2,
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+          }
+        }}
+      >
+        <DialogContent sx={{ p: 0, position: 'relative' }}>
+          <IconButton
+            onClick={handleCloseImageModal}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: 'rgba(255,255,255,0.7)',
+              '&:hover': {
+                color: '#E0C3FC',
+                background: 'rgba(224, 195, 252, 0.1)'
+              },
+              zIndex: 1
+            }}
+          >
+            <CloseIcon />
+          </IconButton>
+          {selectedImage && (
+            <img
+              src={selectedImage}
+              alt="Enlarged Chart"
+              style={{
+                width: '100%',
+                height: 'auto',
+                display: 'block',
+                borderRadius: '4px'
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+    </>
   );
 };
 
