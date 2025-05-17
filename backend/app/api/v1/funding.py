@@ -3,7 +3,12 @@ from sqlalchemy.orm import Session
 from typing import Optional, List
 from pydantic import BaseModel
 from app.core.database import get_db
-from app.services.funding import generate_funding_recommendations, get_funding_recommendations, get_recommendation_history
+from app.services.funding import (
+    generate_funding_recommendations, 
+    get_funding_recommendations, 
+    get_recommendation_history,
+    save_funding_feedback
+)
 import logging
 
 logger = logging.getLogger(__name__)
@@ -23,6 +28,15 @@ class RecommendationHistoryResponse(BaseModel):
     additional_context: Optional[str] = None
     created_at: str
     recommendations: Optional[list] = None
+
+class FundingFeedbackRequest(BaseModel):
+    company_id: int
+    recommendation_id: int
+    recommendation_name: str
+    provider: str
+    is_success: bool = True
+    feedback_type: str = "application_success"
+    feedback_notes: Optional[str] = None
 
 @router.post("/funding/recommendations", status_code=status.HTTP_201_CREATED)
 async def create_funding_recommendations(
@@ -101,4 +115,39 @@ async def get_company_recommendation_history(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Error retrieving recommendation history: {str(e)}"
+        )
+
+@router.post("/funding/feedback", status_code=status.HTTP_201_CREATED)
+async def submit_funding_feedback(
+    request: FundingFeedbackRequest,
+    db: Session = Depends(get_db)
+):
+    """
+    Submit feedback on funding recommendations for reinforcement learning
+    
+    This endpoint allows users to indicate when they've successfully 
+    secured funding through a recommended grant/loan
+    """
+    try:
+        feedback = await save_funding_feedback(
+            db=db,
+            company_id=request.company_id,
+            recommendation_id=request.recommendation_id,
+            recommendation_name=request.recommendation_name,
+            provider=request.provider,
+            is_success=request.is_success,
+            feedback_type=request.feedback_type,
+            feedback_notes=request.feedback_notes
+        )
+        
+        return {
+            "message": "Feedback submitted successfully",
+            "feedback": feedback
+        }
+        
+    except Exception as e:
+        logger.error(f"Error submitting feedback: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Error submitting funding feedback: {str(e)}"
         )

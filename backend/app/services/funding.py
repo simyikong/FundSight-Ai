@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from app.models.funding import FundingRecommendation
+from app.models.funding import FundingRecommendation, FundingFeedback
 from app.models.company import Company
 from app.agents.funding_recommendation_agent import FundingRecommendationAgent
 import logging
@@ -104,4 +104,53 @@ async def get_recommendation_history(db: Session, company_id: int):
         
     except Exception as e:
         logger.error(f"Error retrieving funding recommendation history: {e}")
+        raise
+
+async def save_funding_feedback(
+    db: Session,
+    company_id: int,
+    recommendation_id: int,
+    recommendation_name: str,
+    provider: str,
+    is_success: bool = True,
+    feedback_type: str = "application_success",
+    feedback_notes: str = None
+):
+    """
+    Save feedback on funding recommendations
+    
+    This is used for reinforcement learning to improve future recommendations
+    based on which recommendations actually led to successful funding.
+    """
+    try:
+        # Check if recommendation exists
+        recommendation = db.query(FundingRecommendation).filter(
+            FundingRecommendation.id == recommendation_id
+        ).first()
+        
+        if not recommendation:
+            logger.warning(f"Recommendation with ID {recommendation_id} not found")
+            # We'll still save the feedback even if the recommendation is not found
+            
+        # Create new feedback entry
+        feedback = FundingFeedback(
+            company_id=company_id,
+            recommendation_id=recommendation_id,
+            recommendation_name=recommendation_name,
+            provider=provider,
+            is_success=is_success,
+            feedback_type=feedback_type,
+            feedback_notes=feedback_notes
+        )
+        
+        db.add(feedback)
+        db.commit()
+        db.refresh(feedback)
+        
+        logger.info(f"Saved funding feedback for recommendation {recommendation_id} for company {company_id}")
+        return feedback.to_dict()
+        
+    except Exception as e:
+        logger.error(f"Error saving funding feedback: {e}")
+        db.rollback()
         raise
