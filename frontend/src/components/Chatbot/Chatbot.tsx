@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Box, TextField, IconButton, Paper, Typography, CircularProgress, Avatar } from '@mui/material';
+import { Box, TextField, IconButton, Paper, Typography, CircularProgress, Avatar, Dialog, DialogContent, Button } from '@mui/material';
 import SendIcon from '@mui/icons-material/Send';
 import AttachFileIcon from '@mui/icons-material/AttachFile';
 import CloseIcon from '@mui/icons-material/Close';
@@ -466,279 +466,279 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
   };
 
   return (
-    <Box sx={{
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-      background: 'linear-gradient(135deg, rgba(22, 35, 63, 0.95) 10%, rgba(49, 46, 129, 0.95) 100%)',
-      borderRadius: '0px',
-      backdropFilter: 'blur(20px)',
-      border: '1px solid rgba(255, 255, 255, 0.1)',
-      position: 'relative',
-      overflow: 'hidden',
-      '&::before': {
-        content: '""',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        background: `
-          radial-gradient(circle at 80% 10%, rgba(157, 76, 232, 0.15) 0%, transparent 35%),
-          radial-gradient(circle at 20% 10%, rgba(70, 147, 229, 0.2) 0%, transparent 40%),
-          radial-gradient(circle at 50% 5%, rgba(246, 153, 251, 0.15) 0%, transparent 30%)
-        `,
-        pointerEvents: 'none',
-      },
-      '&::after': {
-        content: '""',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        pointerEvents: 'none',
-      }
-    }}>
       <Box sx={{
+        height: '100%',
         display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        p: 2,
-        borderBottom: '1px solid rgba(255,255,255,0.1)',
-        background: 'rgba(0,0,0,0.2)',
-        backdropFilter: 'blur(10px)',
-        position: 'sticky',
-        top: 0,
-        zIndex: 1,
+        flexDirection: 'column',
+        background: 'linear-gradient(135deg, rgba(22, 35, 63, 0.95) 10%, rgba(49, 46, 129, 0.95) 100%)',
+        borderRadius: '0px',
+        backdropFilter: 'blur(20px)',
+        border: '1px solid rgba(255, 255, 255, 0.1)',
+        position: 'relative',
+        overflow: 'hidden',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: `
+            radial-gradient(circle at 80% 10%, rgba(157, 76, 232, 0.15) 0%, transparent 35%),
+            radial-gradient(circle at 20% 10%, rgba(70, 147, 229, 0.2) 0%, transparent 40%),
+            radial-gradient(circle at 50% 5%, rgba(246, 153, 251, 0.15) 0%, transparent 30%)
+          `,
+          pointerEvents: 'none',
+        },
+        '&::after': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          pointerEvents: 'none',
+        }
       }}>
-        <IconButton onClick={onClose} size="small" sx={{
-          color: 'rgba(255,255,255,0.7)',
-          '&:hover': {
-            color: '#E0C3FC',
-            background: 'rgba(224, 195, 252, 0.1)'
-          }
+        <Box sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          p: 2,
+          borderBottom: '1px solid rgba(255,255,255,0.1)',
+          background: 'rgba(0,0,0,0.2)',
+          backdropFilter: 'blur(10px)',
+          position: 'sticky',
+          top: 0,
+          zIndex: 1,
         }}>
-          <MenuOpenIcon sx={{
-            transform: 'rotate(180deg)',
-            transition: 'transform 0.3s ease'
-          }} />
-        </IconButton>
-
-        <Typography variant="h6" sx={{
-          color: '#E0C3FC',
-          fontWeight: 600,
-          textShadow: '0 2px 10px rgba(224, 195, 252, 0.2)',
-        }}>AI Assistant</Typography>
-
-        <IconButton
-          onClick={handleClearChat}
-          size="small"
-          sx={{
+          <IconButton onClick={onClose} size="small" sx={{
             color: 'rgba(255,255,255,0.7)',
             '&:hover': {
               color: '#E0C3FC',
               background: 'rgba(224, 195, 252, 0.1)'
             }
-          }}
-        >
-          <BiSolidEdit size={20} />
-        </IconButton>
-      </Box>
-      <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
-        {messages.length === 0 ? (
-          <Box sx={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            justifyContent: 'center',
-            height: '100%',
-            width: '100%',
-            minHeight: 400,
           }}>
-            <Typography variant="h4" sx={{
-              fontWeight: 700,
-              background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
-              backgroundClip: 'text',
-              WebkitBackgroundClip: 'text',
-              color: 'transparent',
-              letterSpacing: '0.5px',
-              textShadow: '0 2px 10px rgba(224, 195, 252, 0.2)',
-              mb: 5,
-              textAlign: 'center',
-            }}>
-              How can I help you?
-            </Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-              {quickStarts.map((msg) => (
-                <Paper
-                  key={msg}
-                  elevation={0}
-                  sx={{
-                    px: 2,
-                    py: 1,
-                    mb: 1.5,
-                    borderRadius: 1,
-                    background: 'rgba(255,255,255,0.08)',
-                    color: 'rgba(255, 255, 255, 0.52)',
-                    cursor: 'pointer',
-                    display: 'inline-block',
-                    '&:hover': {
-                      background: 'rgba(255,255,255,0.15)',
-                    }
-                  }}
-                  onClick={() => handleQuickStart(msg)}
-                >
-                  {msg}
-                </Paper>
-              ))}
-            </Box>
-          </Box>
-        ) : (
-          <>
-            {messages.map((message, index) => (
-              <div key={index}>{renderMessage(message, index)}</div>
-            ))}
-            <div ref={messagesEndRef} />
-          </>
-        )}
-      </Box>
-      <Box sx={{ p: 2, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(5px)' }}>
-        {/* Only show fileInfo preview above input area, not in chat history */}
-        {fileInfo && (
-          <Box sx={{
-            mb: 1,
-            display: 'flex',
-            gap: 1,
-            alignItems: 'center',
-            background: 'rgba(255,255,255,0.13)',
-            py: 1.2,
-            px: 2,
-            borderRadius: 1,
-            border: '1px solid rgba(255,255,255,0.13)',
-            boxShadow: '0 1px 4px rgba(224, 195, 252, 0.10)',
-            width: 'fit-content',
-          }}>
-            <Avatar sx={{ bgcolor: '#8086bf', width: 28, height: 28, fontSize: 18 }}> <DescriptionIcon sx={{ color: '#fff', fontSize: 18 }} /> </Avatar>
-            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>
-                {fileInfo.name}
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', fontWeight: 400 }}>
-                {fileInfo.type}
-              </Typography>
-            </Box>
-            <IconButton
-              size="small"
-              onClick={() => {
-                setFileInfo(null);
-                setFile(null);
-              }}
-              sx={{
-                color: 'rgba(255,255,255,0.7)',
-                '&:hover': {
-                  color: '#FF6B6B',
-                  background: 'rgba(255,255,255,0.1)'
-                },
-                borderRadius: 2
-              }}
-            >
-              <CloseIcon fontSize="small" />
-            </IconButton>
-          </Box>
-        )}
-        <Box sx={{
-          display: 'flex',
-          background: 'rgba(255,255,255,0.10)',
-          p: 1.5,
-          borderRadius: 2,
-          border: '1px solid rgba(255,255,255,0.13)',
-          boxShadow: '0 1px 4px rgba(224, 195, 252, 0.10)',
-          alignItems: 'center',
-        }}>
-          <label htmlFor="file-upload">
-            <IconButton component="span" sx={{
+            <MenuOpenIcon sx={{
+              transform: 'rotate(180deg)',
+              transition: 'transform 0.3s ease'
+            }} />
+          </IconButton>
+
+          <Typography variant="h6" sx={{
+            color: '#E0C3FC',
+            fontWeight: 600,
+            textShadow: '0 2px 10px rgba(224, 195, 252, 0.2)',
+          }}>AI Assistant</Typography>
+
+          <IconButton
+            onClick={handleClearChat}
+            size="small"
+            sx={{
               color: 'rgba(255,255,255,0.7)',
               '&:hover': {
                 color: '#E0C3FC',
                 background: 'rgba(224, 195, 252, 0.1)'
-              },
-              borderRadius: 2
-            }}>
-              <AttachFileIcon />
-            </IconButton>
-          </label>
-          <input
-            type="file"
-            style={{ display: 'none' }}
-            id="file-upload"
-            accept=".pdf,.docx,.jpg,.jpeg,.png,.csv,.xlsx"
-            onChange={handleFileUpload}
-          />
-          <TextField
-            fullWidth
-            variant="standard"
-            placeholder="Ask anything..."
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
-            disabled={isLoading}
-            InputProps={{
-              disableUnderline: true,
-              sx: {
-                color: 'white',
-                fontSize: 16,
-                width: '360px', // Make input wider
-                maxWidth: '100%',
-                background: 'transparent',
-                border: 'none',
-                '& input': {
-                  paddingTop: '8px',
-                  paddingBottom: '8px',
-                  paddingLeft: '10px',
-                },
-                '& input::placeholder': {
-                  color: 'rgba(255,255,255,0.5)',
-                  opacity: 1,
-                  verticalAlign: 'middle',
-                },
               }
             }}
-          />
-          <IconButton
-            onClick={handleVoiceInput}
-            sx={{
-              color: isListening ? '#E0C3FC' : 'rgba(255,255,255,0.7)',
-              animation: isListening ? `${pulseAnimation} 1.5s infinite` : 'none',
-              '&:hover': {
-                color: '#E0C3FC',
-                background: 'rgba(224, 195, 252, 0.1)'
-              },
-              borderRadius: 2
-            }}
           >
-            <MicIcon />
-          </IconButton>
-          <IconButton
-            onClick={handleSend}
-            disabled={isLoading}
-            sx={{
-              background: 'linear-gradient(215deg, #a3c1e2 0%, #7a8cc2 100%)',
-              color: '#ffffff',
-              borderRadius: 2,
-              '&:hover': {
-                background: 'linear-gradient(215deg, #8fb3da 0%, #6b7bb5 100%)',
-                transform: 'translateY(-1px)',
-                boxShadow: '0 4px 12px rgba(120, 150, 200, 0.3)'
-              },
-              transition: 'all 0.3s ease'
-            }}
-          >
-            {isLoading ? <CircularProgress size={24} sx={{ color: '#13111C' }} /> : <SendIcon />}
+            <BiSolidEdit size={20} />
           </IconButton>
         </Box>
+        <Box sx={{ flexGrow: 1, overflow: 'auto', p: 2 }}>
+          {messages.length === 0 ? (
+            <Box sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              width: '100%',
+              minHeight: 400,
+            }}>
+              <Typography variant="h4" sx={{
+                fontWeight: 700,
+                background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
+                backgroundClip: 'text',
+                WebkitBackgroundClip: 'text',
+                color: 'transparent',
+                letterSpacing: '0.5px',
+                textShadow: '0 2px 10px rgba(224, 195, 252, 0.2)',
+                mb: 5,
+                textAlign: 'center',
+              }}>
+                How can I help you?
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                {quickStarts.map((msg) => (
+                  <Paper
+                    key={msg}
+                    elevation={0}
+                    sx={{
+                      px: 2,
+                      py: 1,
+                      mb: 1.5,
+                      borderRadius: 1,
+                      background: 'rgba(255,255,255,0.08)',
+                      color: 'rgba(255, 255, 255, 0.52)',
+                      cursor: 'pointer',
+                      display: 'inline-block',
+                      '&:hover': {
+                        background: 'rgba(255,255,255,0.15)',
+                      }
+                    }}
+                    onClick={() => handleQuickStart(msg)}
+                  >
+                    {msg}
+                  </Paper>
+                ))}
+              </Box>
+            </Box>
+          ) : (
+            <>
+              {messages.map((message, index) => (
+                <div key={index}>{renderMessage(message, index)}</div>
+              ))}
+              <div ref={messagesEndRef} />
+            </>
+          )}
+        </Box>
+        <Box sx={{ p: 2, background: 'rgba(255,255,255,0.05)', backdropFilter: 'blur(5px)' }}>
+          {/* Only show fileInfo preview above input area, not in chat history */}
+          {fileInfo && (
+            <Box sx={{
+              mb: 1,
+              display: 'flex',
+              gap: 1,
+              alignItems: 'center',
+              background: 'rgba(255,255,255,0.13)',
+              py: 1.2,
+              px: 2,
+              borderRadius: 1,
+              border: '1px solid rgba(255,255,255,0.13)',
+              boxShadow: '0 1px 4px rgba(224, 195, 252, 0.10)',
+              width: 'fit-content',
+            }}>
+              <Avatar sx={{ bgcolor: '#8086bf', width: 28, height: 28, fontSize: 18 }}> <DescriptionIcon sx={{ color: '#fff', fontSize: 18 }} /> </Avatar>
+              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>
+                  {fileInfo.name}
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.6)', fontWeight: 400 }}>
+                  {fileInfo.type}
+                </Typography>
+              </Box>
+              <IconButton
+                size="small"
+                onClick={() => {
+                  setFileInfo(null);
+                  setFile(null);
+                }}
+                sx={{
+                  color: 'rgba(255,255,255,0.7)',
+                  '&:hover': {
+                    color: '#FF6B6B',
+                    background: 'rgba(255,255,255,0.1)'
+                  },
+                  borderRadius: 2
+                }}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            </Box>
+          )}
+          <Box sx={{
+            display: 'flex',
+            background: 'rgba(255,255,255,0.10)',
+            p: 1.5,
+            borderRadius: 2,
+            border: '1px solid rgba(255,255,255,0.13)',
+            boxShadow: '0 1px 4px rgba(224, 195, 252, 0.10)',
+            alignItems: 'center',
+          }}>
+            <label htmlFor="file-upload">
+              <IconButton component="span" sx={{
+                color: 'rgba(255,255,255,0.7)',
+                '&:hover': {
+                  color: '#E0C3FC',
+                  background: 'rgba(224, 195, 252, 0.1)'
+                },
+                borderRadius: 2
+              }}>
+                <AttachFileIcon />
+              </IconButton>
+            </label>
+            <input
+              type="file"
+              style={{ display: 'none' }}
+              id="file-upload"
+              accept=".pdf,.docx,.jpg,.jpeg,.png,.csv,.xlsx"
+              onChange={handleFileUpload}
+            />
+            <TextField
+              fullWidth
+              variant="standard"
+              placeholder="Ask anything..."
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+              disabled={isLoading}
+              InputProps={{
+                disableUnderline: true,
+                sx: {
+                  color: 'white',
+                  fontSize: 16,
+                  width: '360px', // Make input wider
+                  maxWidth: '100%',
+                  background: 'transparent',
+                  border: 'none',
+                  '& input': {
+                    paddingTop: '8px',
+                    paddingBottom: '8px',
+                    paddingLeft: '10px',
+                  },
+                  '& input::placeholder': {
+                    color: 'rgba(255,255,255,0.5)',
+                    opacity: 1,
+                    verticalAlign: 'middle',
+                  },
+                }
+              }}
+            />
+            <IconButton
+              onClick={handleVoiceInput}
+              sx={{
+                color: isListening ? '#E0C3FC' : 'rgba(255,255,255,0.7)',
+                animation: isListening ? `${pulseAnimation} 1.5s infinite` : 'none',
+                '&:hover': {
+                  color: '#E0C3FC',
+                  background: 'rgba(224, 195, 252, 0.1)'
+                },
+                borderRadius: 2
+              }}
+            >
+              <MicIcon />
+            </IconButton>
+            <IconButton
+              onClick={handleSend}
+              disabled={isLoading}
+              sx={{
+                background: 'linear-gradient(215deg, #a3c1e2 0%, #7a8cc2 100%)',
+                color: '#ffffff',
+                borderRadius: 2,
+                '&:hover': {
+                  background: 'linear-gradient(215deg, #8fb3da 0%, #6b7bb5 100%)',
+                  transform: 'translateY(-1px)',
+                  boxShadow: '0 4px 12px rgba(120, 150, 200, 0.3)'
+                },
+                transition: 'all 0.3s ease'
+              }}
+            >
+              {isLoading ? <CircularProgress size={24} sx={{ color: '#13111C' }} /> : <SendIcon />}
+            </IconButton>
+          </Box>
+        </Box>
       </Box>
-    </Box>
   );
 };
 

@@ -35,7 +35,7 @@ AGENT_MAP = {
     'DocumentAgent': DocumentAgent,
     'ChatAgent': ChatAgent,
     'InsightAgent': InsightAgent,
-    'MCPAgent': MCPAgent
+    'MCPAgent': MCPAgent,
 }
 
 def _clean_ollama_response(text):
@@ -56,11 +56,14 @@ def _clean_response(text):
     
 async def stream_response(messages, agent):
     try:
+        prev_chunk = ""
         for chunk in agent.handle(messages=messages):
-            cleaned_chunk = _clean_ollama_response(chunk)
-            if cleaned_chunk.strip() == "":
-                cleaned_chunk = " "
-            yield f"data: {json.dumps({'content': cleaned_chunk})}\n\n"
+            if chunk.strip() == "" and prev_chunk.strip() == "":
+                chunk = "\n "  
+            elif chunk.strip() == "":
+                chunk = " "
+            prev_chunk = chunk  
+            yield f"data: {json.dumps({'content': chunk})}\n\n"
             await asyncio.sleep(0.01)  
     except Exception as e:
         logger.error(f"Error in streaming response: {str(e)}", exc_info=True)
@@ -155,8 +158,6 @@ async def chat_stream(request: ChatRequest):
 
         if agent_name == 'LoanAgent':
             response_stream = stream_json_response(messages, agent)
-        elif agent_name == 'InsightAgent':
-            response_stream = stream_tool_response(messages, agent)
         else:
             response_stream = stream_response(messages, agent)
 
