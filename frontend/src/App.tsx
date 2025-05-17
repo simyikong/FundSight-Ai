@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { theme } from './theme';
@@ -37,6 +37,15 @@ function App() {
     document.addEventListener('mousemove', doDrag);
     document.addEventListener('mouseup', stopDrag);
   };
+
+  // Listen for custom event to open chatbot
+  useEffect(() => {
+    const handler = () => {
+      setChatbotOpen(true);
+    };
+    window.addEventListener('open-ai-chatbot', handler);
+    return () => window.removeEventListener('open-ai-chatbot', handler);
+  }, []);
 
   return (
     <ThemeProvider theme={theme}>

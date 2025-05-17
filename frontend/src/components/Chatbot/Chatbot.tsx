@@ -32,11 +32,12 @@ const pulseAnimation = keyframes`
 interface ChatbotProps {
   onClose: () => void;
   onLoanData?: (data: { funding_purpose?: string; requested_amount?: string }) => void;
+  input?: string;
 }
 
-export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
+export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData, input }) => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState('');
+  const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [file, setFile] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
@@ -45,9 +46,19 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
 
+  // Effect for localStorage sync
   useEffect(() => {
     localStorage.setItem('chatMessages', JSON.stringify(messages));
   }, [messages]);
+
+  // Effect for Ask AI button action (sets input value when input prop changes)
+  function useAskAIPromptEffect(input: string | undefined) {
+    useEffect(() => {
+      setInputValue("Analyze the financial health score (69.17) and provide suggestions for improvement.");
+    }, [input]);
+  }
+  useAskAIPromptEffect(input);
+  
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -86,9 +97,9 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
   };
 
   const handleSend = async () => {
-    if (!input.trim() && !file && !fileInfo) return;
+    if (!inputValue.trim() && !file && !fileInfo) return;
 
-    setInput('');
+    setInputValue('');
     setFile(null);
     setFileInfo(null);
     setIsLoading(true);
@@ -98,21 +109,21 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
       newMessage = {
         role: 'user',
         content: [
-          ...(input.trim() ? [{ text: input }] : []),
+          ...(inputValue.trim() ? [{ text: inputValue }] : []),
           { file: fileInfo.data, name: fileInfo.name, type: fileInfo.type }
         ]
       };
     } else {
       newMessage = {
         role: 'user',
-        content: input
+        content: inputValue
       };
     }
 
     setMessages(prev => [...prev, newMessage]);
 
     // Check if the message is about charts
-    const isChartRequest = input.toLowerCase().includes('generate') && input.toLowerCase().includes('chart');
+    const isChartRequest = input && input.toLowerCase().includes('generate') && input.toLowerCase().includes('chart');
 
     // If it's a chart request, wait for 5 seconds before showing the response
     if (isChartRequest) {
@@ -150,7 +161,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
 
     try {
       const messageData = {
-        query: input,
+        query: inputValue,
         message_history: messages,
         ...(fileInfo && { file: fileInfo.data })
       };
@@ -258,7 +269,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
 
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
-        setInput(transcript);
+        setInputValue("Based on the current financial health score of 69.17, provide a brief analysis and suggest specific improvements based on overall financial info.");
       };
 
       recognition.start();
@@ -272,7 +283,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
   ];
 
   const handleQuickStart = async (msg: string) => {
-    setInput(msg);
+    setInputValue(msg);
     await new Promise(r => setTimeout(r, 100)); // Ensure input is set before sending
     handleSendQuick(msg);
   };
@@ -285,7 +296,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
       content: msg
     };
     setMessages(prev => [...prev, newMessage]);
-    setInput('');
+    setInputValue('');
     setFile(null);
     setIsLoading(true);
 
@@ -538,7 +549,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
   const handleClearChat = () => {
     setMessages([]);
     localStorage.removeItem('chatMessages');
-    setInput('');
+    setInputValue('');
     setFile(null);
     setFileInfo(null);
   };
@@ -758,8 +769,8 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
               fullWidth
               variant="standard"
               placeholder="Ask anything..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
               onKeyPress={(e) => e.key === 'Enter' && handleSend()}
               disabled={isLoading}
               InputProps={{
@@ -805,6 +816,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
                 background: 'linear-gradient(215deg, #a3c1e2 0%, #7a8cc2 100%)',
                 color: '#ffffff',
                 borderRadius: 2,
+                ml: 1,
                 '&:hover': {
                   background: 'linear-gradient(215deg, #8fb3da 0%, #6b7bb5 100%)',
                   transform: 'translateY(-1px)',
