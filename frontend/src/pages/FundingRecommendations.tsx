@@ -16,6 +16,7 @@ import {
   LoanRecommendationSection,
   ProfileCompletionCheck
 } from '../components/FundingRecommendations';
+import { useLocation } from 'react-router-dom';
 import { LoadingState, ErrorState } from '../components/common/ui';
 import FundingOptionCard from '../components/FundingRecommendations/FundingOptionCard';
 import { LoanRecommendation } from '../components/types';
@@ -37,6 +38,41 @@ const FundingRecommendations: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const theme = useTheme();
+  const location = useLocation();
+
+  // Handle loan data from chatbot
+  useEffect(() => {
+    const loanData = location.state?.loanData;
+    console.log('Location state:', location.state);
+    console.log('Loan data from location:', loanData);
+    
+    if (loanData) {
+      console.log('Processing loan data:', loanData);
+      
+      // Handle funding purpose
+      if (loanData.funding_purpose) {
+        const purpose = loanData.funding_purpose.toLowerCase();
+        console.log('Setting loan purpose to:', purpose);
+        setLoanPurpose(purpose);
+      }
+      
+      // Handle requested amount
+      if (loanData.requested_amount) {
+        const amount = loanData.requested_amount.toString();
+        console.log('Setting loan amount to:', amount);
+        setLoanAmount(amount);
+      }
+      
+      // Enable recommendations
+      console.log('Enabling recommendations');
+      setIsRecommendationEnabled(true);
+      
+      // Generate recommendations automatically when loan data is received
+      if (loanData.suggest_loan) {
+        fetchRecommendations();
+      }
+    }
+  }, [location.state]);
 
   // Check if user has completed their profile using the API
   useEffect(() => {
@@ -164,6 +200,7 @@ const FundingRecommendations: React.FC = () => {
         }
       ];
       
+      console.log('Setting recommendations:', sampleRecommendations);
       setRecommendations(sampleRecommendations);
       setLoading(false);
     }, 1500); // 1.5 second delay to simulate API call
