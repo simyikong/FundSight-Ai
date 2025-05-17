@@ -21,8 +21,10 @@ import { LoanRecommendation, LOAN_PURPOSES } from '../../components/types';
 interface LoanRecommendationSectionProps {
   loanPurpose: string;
   loanAmount: string;
+  additionalContext: string;
   onLoanPurposeChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onLoanAmountChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onAdditionalContextChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isEnabled: boolean;
   recommendations: LoanRecommendation[];
   onGenerateRecommendations: () => void;
@@ -31,8 +33,10 @@ interface LoanRecommendationSectionProps {
 const LoanRecommendationSection: React.FC<LoanRecommendationSectionProps> = ({
   loanPurpose,
   loanAmount,
+  additionalContext,
   onLoanPurposeChange,
   onLoanAmountChange,
+  onAdditionalContextChange,
   isEnabled,
   recommendations,
   onGenerateRecommendations
@@ -87,6 +91,7 @@ const LoanRecommendationSection: React.FC<LoanRecommendationSectionProps> = ({
           type="number"
           disabled={!isEnabled}
           placeholder="e.g., 50000"
+          sx={{ mb: 2 }}
           InputProps={{
             startAdornment: (
               <Typography variant="body1" sx={{ mr: 1, color: 'text.secondary' }}>
@@ -94,6 +99,19 @@ const LoanRecommendationSection: React.FC<LoanRecommendationSectionProps> = ({
               </Typography>
             )
           }}
+        />
+
+        <TextField
+          fullWidth
+          label="Additional Context (Optional)"
+          value={additionalContext}
+          onChange={onAdditionalContextChange}
+          variant="outlined"
+          disabled={!isEnabled}
+          multiline
+          rows={3}
+          placeholder="Provide more details about your funding needs, business situation, or specific requirements to help us generate better recommendations."
+          helperText="This information helps the AI better understand your specific funding needs"
         />
       </Box>
 

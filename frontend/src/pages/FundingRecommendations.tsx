@@ -3,30 +3,47 @@ import {
   Typography,
   Divider,
   Paper,
-  Button
+  Button,
+  CircularProgress,
+  Box,
+  Alert
 } from '@mui/material';
+import axios from 'axios';
 import Layout from '../components/Layout';
 import { LoanRecommendationSection } from '../components/FundingRecommendations';
+
+const API_BASE_URL = 'http://localhost:8000/api/v1';
 
 const FundingRecommendations: React.FC = () => {
   // Loan recommendation state
   const [loanPurpose, setLoanPurpose] = useState('');
   const [loanAmount, setLoanAmount] = useState('');
+  const [additionalContext, setAdditionalContext] = useState('');
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [isRecommendationEnabled, setIsRecommendationEnabled] = useState(false);
+  
+  // Profile status state
   const [hasCompletedProfile, setHasCompletedProfile] = useState(false);
+  const [missingFields, setMissingFields] = useState<string[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Simulate checking if user has completed their profile
+  // Check if user has completed their profile using the API
   useEffect(() => {
-    // In a real application, you would check with the backend if the user
-    // has completed their profile and uploaded required documents
     const checkProfileStatus = async () => {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // For demo purposes, we'll assume they have a completed profile
-      setHasCompletedProfile(true);
-      setIsRecommendationEnabled(true);
+      try {
+        setLoading(true);
+        const response = await axios.get(`${API_BASE_URL}/company/status`);
+        
+        setHasCompletedProfile(response.data.isComplete);
+        setMissingFields(response.data.missingFields || []);
+        setIsRecommendationEnabled(response.data.isComplete);
+        setLoading(false);
+      } catch (err) {
+        console.error('Error checking profile status:', err);
+        setError('Could not check profile completion status');
+        setLoading(false);
+      }
     };
     
     checkProfileStatus();
@@ -35,6 +52,13 @@ const FundingRecommendations: React.FC = () => {
   // Generate funding recommendations
   const generateRecommendations = () => {
     // Simulate API call to get recommendations
+    setRecommendations([]);
+    
+    // TODO: Replace with actual API call to the backend, passing user context
+    // The additionalContext would be sent to the backend to help generate better
+    // personalized recommendations based on the user's specific situation
+    console.log('Additional context provided:', additionalContext);
+    
     setTimeout(() => {
       const sampleRecommendations = [
         {
@@ -74,6 +98,40 @@ const FundingRecommendations: React.FC = () => {
     window.location.href = '/company-profile';
   };
 
+  if (loading) {
+    return (
+      <Layout
+        title="Funding Recommendations"
+        subtitle="Checking profile status..."
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+          <CircularProgress />
+        </Box>
+      </Layout>
+    );
+  }
+
+  if (error) {
+    return (
+      <Layout
+        title="Funding Recommendations"
+        subtitle="Error checking profile"
+      >
+        <Alert severity="error" sx={{ mt: 2 }}>
+          {error}
+        </Alert>
+        <Button 
+          variant="contained" 
+          color="primary" 
+          onClick={handleCompanyProfileClick}
+          sx={{ mt: 2 }}
+        >
+          Go to Company Profile
+        </Button>
+      </Layout>
+    );
+  }
+
   return (
     <Layout
       title="Funding Recommendations"
@@ -86,8 +144,20 @@ const FundingRecommendations: React.FC = () => {
         {!hasCompletedProfile ? (
           <div>
             <Typography variant="body1" paragraph>
-              To get personalized funding recommendations, you need to complete your company profile and upload the required documents.
+              To get personalized funding recommendations, you need to complete your company profile with the following required fields:
             </Typography>
+            
+            {missingFields.length > 0 && (
+              <Alert severity="info" sx={{ mb: 2 }}>
+                <Typography variant="subtitle2">Missing information:</Typography>
+                <ul style={{ margin: '8px 0', paddingLeft: '20px' }}>
+                  {missingFields.map((field, index) => (
+                    <li key={index}>{field}</li>
+                  ))}
+                </ul>
+              </Alert>
+            )}
+            
             <Button 
               variant="contained" 
               color="primary" 
@@ -100,8 +170,10 @@ const FundingRecommendations: React.FC = () => {
           <LoanRecommendationSection 
             loanPurpose={loanPurpose}
             loanAmount={loanAmount}
+            additionalContext={additionalContext}
             onLoanPurposeChange={(e: React.ChangeEvent<HTMLInputElement>) => setLoanPurpose(e.target.value)}
             onLoanAmountChange={(e: React.ChangeEvent<HTMLInputElement>) => setLoanAmount(e.target.value)}
+            onAdditionalContextChange={(e: React.ChangeEvent<HTMLInputElement>) => setAdditionalContext(e.target.value)}
             isEnabled={isRecommendationEnabled}
             recommendations={recommendations}
             onGenerateRecommendations={generateRecommendations}
