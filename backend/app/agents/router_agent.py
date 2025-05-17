@@ -16,6 +16,7 @@ Available Agents:
 - LoanAgent: For financing options and applications
 - DocumentAgent: For document analysis and validation
 - ChatAgent: For general conversation and queries
+- MCPAgent: For MCP related queries (user want to manipulate database)
 
 Only return the name of the agent without any extra text.
 """

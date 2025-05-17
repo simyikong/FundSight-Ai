@@ -28,7 +28,12 @@ const pulseAnimation = keyframes`
   100% { transform: scale(1); }
 `;
 
-const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+interface ChatbotProps {
+  onClose: () => void;
+  onLoanData?: (data: { funding_purpose?: string; requested_amount?: string }) => void;
+}
+
+export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -51,13 +56,25 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const navigate = useNavigate();
 
-  const handleTabSwitch = (tabName: string) => {
+  const handleTabSwitch = (tabName: string, loanData?: { funding_purpose?: string; requested_amount?: string }) => {
+    console.log('Handling tab switch:', { tabName, loanData });
     switch (tabName) {
       case 'Dashboard':
         navigate('/dashboard');
         break;
       case 'Loan':
-        navigate('/loan');
+        console.log('Navigating to funding recommendations with loan data:', loanData);
+        navigate('/funding-recommendations', { 
+          state: { 
+            loanData: loanData || null 
+          } 
+        });
+        break;
+      case 'Profile':
+        navigate('/company-profile');
+        break;
+      case 'Document':
+        navigate('/financial-records');
         break;
       default:
         console.log('Unknown tab');
@@ -91,37 +108,67 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
     setMessages(prev => [...prev, newMessage]);
 
+    // Add an empty assistant message that will be updated with streaming content
+    setMessages(prev => [...prev, {
+      role: 'assistant',
+      content: ''
+    }]);
+
     try {
       const messageData = {
         query: input,
         message_history: messages,
         ...(fileInfo && { file: fileInfo.data })
       };
-      const llm_response = await chatApi.sendMessage(messageData);
 
-      let content: string;
-      if (typeof llm_response.data.response === 'string') {
-        content = llm_response.data.response;
-      } else if (typeof llm_response.data.response === 'object' && llm_response.data.response !== null) {
-        content = llm_response.data.response.message;
-      } else {
-        content = 'Unexpected response format.';
-      }
+      let accumulatedContent = '';
 
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: content
-      }]);
+      await chatApi.sendStreamingMessage(
+        messageData,
+        (chunk: string) => {
+          accumulatedContent += chunk;
+          setMessages(prev => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage.role === 'assistant') {
+              lastMessage.content = accumulatedContent;
+            }
+            return newMessages;
+          });
+        },
+        (error: Error) => {
+          console.error('Error in streaming:', error);
+          setMessages(prev => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage.role === 'assistant') {
+              lastMessage.content = 'Sorry, there was an error processing your message.';
+            }
+            return newMessages;
+          });
+        },
+        (tab: string, loanData?: { funding_purpose?: string; requested_amount?: string }) => {
+          console.log('Tab switch callback received:', { tab, loanData });
+          handleTabSwitch(tab, loanData);
+        },
+        (loanData: { funding_purpose?: string; requested_amount?: string }) => {
+          console.log('Loan data callback received:', loanData);
+          if (onLoanData) {
+            onLoanData(loanData);
+          }
+        }
+      );
 
-      if (llm_response.data.switch_tab) {
-        handleTabSwitch(llm_response.data.switch_tab);
-      }
     } catch (error) {
       console.error('Error sending message:', error);
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Sorry, there was an error processing your message.'
-      }]);
+      setMessages(prev => {
+        const newMessages = [...prev];
+        const lastMessage = newMessages[newMessages.length - 1];
+        if (lastMessage.role === 'assistant') {
+          lastMessage.content = 'Sorry, there was an error processing your message.';
+        }
+        return newMessages;
+      });
     } finally {
       setIsLoading(false);
     }
@@ -207,32 +254,60 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     setInput('');
     setFile(null);
     setIsLoading(true);
+
+    // Add an empty assistant message that will be updated with streaming content
+    setMessages(prev => [...prev, {
+      role: 'assistant',
+      content: ''
+    }]);
+
     try {
       const messageData = {
         query: msg,
         message_history: messages,
       };
-      const llm_response = await chatApi.sendMessage(messageData);
-      let content: string;
-      if (typeof llm_response.data.response === 'string') {
-        content = llm_response.data.response;
-      } else if (typeof llm_response.data.response === 'object' && llm_response.data.response !== null) {
-        content = llm_response.data.response.message;
-      } else {
-        content = 'Unexpected response format.';
-      }
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: content
-      }]);
-      if (llm_response.data.switch_tab) {
-        handleTabSwitch(llm_response.data.switch_tab);
-      }
+
+      let accumulatedContent = '';
+
+      await chatApi.sendStreamingMessage(
+        messageData,
+        (chunk: string) => {
+          accumulatedContent += chunk;
+          setMessages(prev => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage.role === 'assistant') {
+              lastMessage.content = accumulatedContent;
+            }
+            return newMessages;
+          });
+        },
+        (error: Error) => {
+          console.error('Error in streaming:', error);
+          setMessages(prev => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage.role === 'assistant') {
+              lastMessage.content = 'Sorry, there was an error processing your message.';
+            }
+            return newMessages;
+          });
+        },
+        (tab: string, loanData?: { funding_purpose?: string; requested_amount?: string }) => {
+          handleTabSwitch(tab, loanData);
+        },
+        onLoanData
+      );
+
     } catch (error) {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Sorry, there was an error processing your message.'
-      }]);
+      setMessages(prev => {
+        const newMessages = [...prev];
+        const lastMessage = newMessages[newMessages.length - 1];
+        if (lastMessage.role === 'assistant') {
+          lastMessage.content = 'Sorry, there was an error processing your message.';
+        }
+        return newMessages;
+      });
     } finally {
       setIsLoading(false);
     }
@@ -427,14 +502,14 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }}>
       <Box sx={{
         display: 'flex',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        px: 2,
-        py: 2.2,
+        justifyContent: 'space-between',
+        p: 2,
         borderBottom: '1px solid rgba(255,255,255,0.1)',
-        background: 'linear-gradient(135deg, rgba(13, 15, 35, 0.98) 0%, rgba(29, 37, 92, 0.95) 100%)',
+        background: 'rgba(0,0,0,0.2)',
         backdropFilter: 'blur(10px)',
-        position: 'relative',
+        position: 'sticky',
+        top: 0,
         zIndex: 1,
       }}>
         <IconButton onClick={onClose} size="small" sx={{
@@ -451,12 +526,8 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         </IconButton>
 
         <Typography variant="h6" sx={{
-          fontWeight: 700,
-          background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
-          backgroundClip: 'text',
-          WebkitBackgroundClip: 'text',
-          color: 'transparent',
-          letterSpacing: '0.5px',
+          color: '#E0C3FC',
+          fontWeight: 600,
           textShadow: '0 2px 10px rgba(224, 195, 252, 0.2)',
         }}>AI Assistant</Typography>
 

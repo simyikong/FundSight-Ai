@@ -1,187 +1,183 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
   Divider,
-  Paper
+  Paper,
+  Button,
+  Snackbar,
+  Alert,
+  CircularProgress
 } from '@mui/material';
+import SaveIcon from '@mui/icons-material/Save';
 import Layout from '../components/Layout';
 import { 
   CompanyProfileSection, 
-  DocumentUploadSection,
-  CompanyProfile as CompanyProfileType,
-  UploadedDocument
+  CompanyProfile as CompanyProfileType
 } from '../components/CompanyProfile';
+import axios from 'axios';
+
+const API_BASE_URL = 'http://localhost:8000/api/v1';
 
 const CompanyProfile: React.FC = () => {
-  // Company profile state
+  // Company profile state with all the new fields
   const [profile, setProfile] = useState<CompanyProfileType>({
     companyName: '',
+    website: '',
     registrationNumber: '',
     companyType: '',
     industry: '',
     location: '',
     yearsOfOperation: '',
+    registrationYear: '',
     employees: '',
-    revenue: '',
-    netProfit: '',
-    taxStatus: '',
-    description: ''
+    founderGender: '',
+    founderEthnicity: '',
+    specialCategory: '',
+    missionStatement: '',
+    description: '',
+    previousGrantsReceived: '',
+    interestedGrantTypes: []
   });
 
-  // Document upload state
-  const [documents, setDocuments] = useState<UploadedDocument[]>([]);
+  // Loading states
+  const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  
+  // Notification states
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Handle document upload
-  const handleDocumentUpload = (type: string, file: File) => {
-    const newDocument: UploadedDocument = {
-      id: Date.now().toString(),
-      type,
-      file,
-      fileName: file.name,
-      uploadDate: new Date(),
-      status: 'uploaded',
-      isActive: true, // Make new uploads active by default
-    };
-    
-    // If this is a new active document, deactivate other documents of the same type
-    const updatedDocuments = documents.map(doc => {
-      if (doc.type === type && doc.isActive) {
-        return { ...doc, isActive: false };
+  // Fetch company profile data on component mount
+  useEffect(() => {
+    const fetchCompanyProfile = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`${API_BASE_URL}/company`);
+        setProfile(prevProfile => ({
+          ...prevProfile,
+          ...response.data
+        }));
+        setLoading(false);
+      } catch (err) {
+        console.error('Error fetching company profile:', err);
+        setError('Failed to load company profile data');
+        setLoading(false);
       }
-      return doc;
-    });
-    
-    setDocuments([...updatedDocuments, newDocument]);
-    
-    // Simulate document processing and data extraction
-    setTimeout(() => {
-      processDocument(newDocument.id);
-    }, 1500);
-  };
+    };
 
-  // Process uploaded document (simulate OCR and data extraction)
-  const processDocument = (documentId: string) => {
-    setDocuments(prevDocuments => 
-      prevDocuments.map(doc => {
-        if (doc.id === documentId) {
-          return { ...doc, status: 'processing' };
-        }
-        return doc;
-      })
-    );
-
-    // Simulate API call to process document
-    setTimeout(() => {
-      setDocuments(prevDocuments => 
-        prevDocuments.map(doc => {
-          if (doc.id === documentId) {
-            // Simulate extracted data based on document type
-            let extractedData = {};
-            
-            if (doc.type === 'ssmCertificate') {
-              extractedData = {
-                companyName: 'Ali Maju Cafe Enterprise',
-                registrationNumber: '0023456789-A',
-                companyType: 'Sole Proprietorship',
-                industry: 'Food & Beverage'
-              };
-            }
-            
-            // Only update profile fields if they're empty or if this is an active document
-            if (doc.isActive) {
-              setProfile(prev => ({
-                ...prev,
-                ...extractedData
-              }));
-            }
-            
-            return { 
-              ...doc, 
-              status: 'completed',
-              extractedData
-            };
-          }
-          return doc;
-        })
-      );
-    }, 2000);
-  };
+    fetchCompanyProfile();
+  }, []);
 
   // Update profile field
-  const handleProfileChange = (field: keyof CompanyProfileType, value: string) => {
+  const handleProfileChange = (field: keyof CompanyProfileType, value: string | string[]) => {
     setProfile({ ...profile, [field]: value });
   };
 
-  // Set a document as active
-  const handleSetActiveDocument = (documentId: string) => {
-    const targetDoc = documents.find(doc => doc.id === documentId);
-    if (!targetDoc) return;
-    
-    setDocuments(prevDocs => 
-      prevDocs.map(doc => {
-        // Deactivate all documents of the same type
-        if (doc.type === targetDoc.type) {
-          return { ...doc, isActive: doc.id === documentId };
-        }
-        return doc;
-      })
-    );
-    
-    // If the activated document has extracted data, update the profile
-    if (targetDoc.extractedData) {
-      setProfile(prev => ({
-        ...prev,
-        ...targetDoc.extractedData
-      }));
-    }
-  };
-  
-  // Delete a document
-  const handleDeleteDocument = (documentId: string) => {
-    const targetDoc = documents.find(doc => doc.id === documentId);
-    if (!targetDoc) return;
-    
-    // If deleting an active document, activate the most recent one of the same type
-    if (targetDoc.isActive) {
-      const sameTypeDocuments = documents
-        .filter(doc => doc.type === targetDoc.type && doc.id !== documentId)
-        .sort((a, b) => b.uploadDate.getTime() - a.uploadDate.getTime());
-      
-      if (sameTypeDocuments.length > 0) {
-        const newActiveDoc = sameTypeDocuments[0];
-        handleSetActiveDocument(newActiveDoc.id);
+  // Add event listener for extracted profile data
+  useEffect(() => {
+    const handleExtractedData = (event: Event) => {
+      const customEvent = event as CustomEvent<{profile: CompanyProfileType}>;
+      if (customEvent.detail && customEvent.detail.profile) {
+        console.log('Received extracted profile data event:', customEvent.detail.profile);
+        setProfile(customEvent.detail.profile);
       }
+    };
+
+    // Add event listener
+    document.addEventListener('profileDataExtracted', handleExtractedData);
+
+    // Clean up
+    return () => {
+      document.removeEventListener('profileDataExtracted', handleExtractedData);
+    };
+  }, []);
+
+  // Save profile to database
+  const handleSaveProfile = async () => {
+    try {
+      setSaving(true);
+      setError(null);
+      
+      const response = await axios.post(`${API_BASE_URL}/company/update`, profile);
+      console.log('Profile saved successfully:', response.data);
+      
+      setSaving(false);
+      setSaveSuccess(true);
+    } catch (err) {
+      console.error('Error saving company profile:', err);
+      setError('Failed to save company profile');
+      setSaving(false);
     }
-    
-    // Remove the document
-    setDocuments(prevDocs => prevDocs.filter(doc => doc.id !== documentId));
   };
+
+  const handleCloseSnackbar = () => {
+    setSaveSuccess(false);
+    setError(null);
+  };
+
+  if (loading) {
+    return (
+      <Layout
+        title="Company Profile"
+        subtitle="Loading company information..."
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 5 }}>
+          <CircularProgress />
+        </Box>
+      </Layout>
+    );
+  }
 
   return (
     <Layout
       title="Company Profile"
-      subtitle="Complete your company profile and upload the necessary documents"
+      subtitle="Complete your company profile information"
     >
       <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="h6" gutterBottom>Company Information</Typography>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+          <Typography variant="h6">Company Information</Typography>
+          <Button 
+            variant="contained" 
+            color="primary" 
+            startIcon={<SaveIcon />}
+            onClick={handleSaveProfile}
+            disabled={saving}
+          >
+            {saving ? 'Saving...' : 'Save Profile'}
+          </Button>
+        </Box>
         <Divider sx={{ mb: 3 }} />
         
         <CompanyProfileSection 
           profile={profile}
           onProfileChange={handleProfileChange}
         />
-        
-        <Box sx={{ mt: 4 }}>
-          <Typography variant="h6" gutterBottom>Company Documents</Typography>
-          <DocumentUploadSection 
-            documents={documents}
-            onDocumentUpload={handleDocumentUpload}
-            onSetActiveDocument={handleSetActiveDocument}
-            onDeleteDocument={handleDeleteDocument}
-          />
-        </Box>
       </Paper>
+
+      {/* Success notification */}
+      <Snackbar 
+        open={saveSuccess} 
+        autoHideDuration={6000} 
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="success" sx={{ width: '100%' }}>
+          Company profile saved successfully!
+        </Alert>
+      </Snackbar>
+
+      {/* Error notification */}
+      <Snackbar 
+        open={!!error} 
+        autoHideDuration={6000} 
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="error" sx={{ width: '100%' }}>
+          {error}
+        </Alert>
+      </Snackbar>
     </Layout>
   );
 };

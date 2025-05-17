@@ -3,16 +3,21 @@ import React from 'react';
 
 export interface CompanyProfile {
   companyName: string;
+  website?: string;
   registrationNumber: string;
   companyType: string;
   industry: string;
   location: string;
   yearsOfOperation: string;
+  registrationYear?: string;
   employees: string;
-  revenue: string;
-  netProfit: string;
-  taxStatus: string;
+  founderGender?: string;
+  founderEthnicity?: string;
+  specialCategory?: string;
+  missionStatement?: string;
   description: string;
+  previousGrantsReceived?: string;
+  interestedGrantTypes?: string[];
 }
 
 export interface UploadedDocument {
@@ -55,10 +60,18 @@ export interface LoanRecommendation {
   id: number;
   name: string;
   provider: string;
-  amount: string;
-  interestRate: string;
-  eligibilitySummary: string;
-  reasons: string[];
+  applicationUrl?: string;
+  objective?: string;
+  coverage?: string;
+  eligibilityRequirements?: string[];
+  financingAmount?: string[];
+  tenure?: string;
+  financingRate?: string[];
+  // Keep backward compatibility for existing fields
+  amount?: string;
+  interestRate?: string;
+  eligibilitySummary?: string;
+  reasons?: string[];
 }
 
 // Constants

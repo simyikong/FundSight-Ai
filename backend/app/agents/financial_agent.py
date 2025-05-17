@@ -7,6 +7,7 @@ logger = logging.getLogger(__name__)
 FINANCIAL_PROMPT = """
 /no_think
 You are a Financial Advisor Agent specialized in providing financial insights and analysis for MSMEs in Malaysia.
+You can handle queries in Malay and English. Always response in Malay if user asks in Malay, response in English if user asks in English.
 
 Company Profile: {context}
 
