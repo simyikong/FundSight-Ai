@@ -56,6 +56,43 @@ export interface YearlyTableResponse {
   }>;
 }
 
+// Dashboard types
+export interface Metric {
+  title: string;
+  value: number;
+  change: number;
+  color: string;
+  tooltip: string;
+}
+
+export interface ChartData {
+  historical: {
+    dates: string[];
+    revenue: number[];
+    profit: number[];
+    cash_inflow: number[];
+    cash_outflow: number[];
+  };
+  forecast: {
+    dates: string[];
+    revenue: number[];
+    profit: number[];
+    cash_inflow: number[];
+    cash_outflow: number[];
+  };
+}
+
+export interface BudgetCategory {
+  name: string;
+  spent: number;
+  budget: number;
+}
+
+export interface BudgetSuggestion {
+  id: string;
+  suggested: number;
+}
+
 // Document API
 export const documentsApi = {
   // Upload document
@@ -139,5 +176,55 @@ export const metricsApi = {
     return response.data;
   }
 };
+
+// Dashboard API
+export const dashboardApi = {
+  // Get key financial metrics
+  getMetrics: async (): Promise<Metric[]> => {
+    const response = await api.get<Metric[]>('/dashboard/metrics');
+    return response.data;
+  },
+
+  // Get revenue and expenses data with forecasting
+  getChartData: async (): Promise<ChartData> => {
+    const response = await api.get<ChartData>('/dashboard/chart-data');
+    return response.data;
+  },
+
+  // Get budget categories
+  getBudgetCategories: async (): Promise<BudgetCategory[]> => {
+    const response = await api.get<BudgetCategory[]>('/dashboard/budget-categories');
+    return response.data;
+  },
+
+  // Get budget suggestions
+  getBudgetSuggestions: async (goal: number, categories: { id: string; name: string }[]): Promise<BudgetSuggestion[]> => {
+    const response = await api.post<BudgetSuggestion[]>('/dashboard/budget-suggestions', {
+      goal,
+      categories
+    });
+    return response.data;
+  },
+
+  // Generate executive summary
+  generateExecutiveSummary: async (startDate: string, endDate: string): Promise<Blob> => {
+    const response = await api.post('/dashboard/report/executive-summary', {
+      start_date: startDate,
+      end_date: endDate
+    }, {
+      responseType: 'blob'
+    });
+    return response.data;
+  },
+
+  getHealthScore: async () => {
+  const response = await axios.get('http://localhost:8000/api/v1/dashboard/health-score');
+  return response.data;
+}
+  
+};
+
+// Add dashboard API methods to the default export
+Object.assign(api, dashboardApi);
 
 export default api; 

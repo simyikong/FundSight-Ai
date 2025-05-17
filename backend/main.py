@@ -28,7 +28,7 @@ app.include_router(chat.router, prefix="/api/v1", tags=["chat"])
 app.include_router(document.router, prefix="/api/v1", tags=["document"])
 app.include_router(metrics.router, prefix="/api/v1", tags=["metrics"])
 app.include_router(admin.router, prefix="/api/v1", tags=["admin"])
-app.include_router(dashboard.router, prefix="/api/v1", tags=["dashboard"])
+app.include_router(dashboard.router, prefix="/api/v1/dashboard", tags=["dashboard"])
 app.include_router(company.router, prefix="/api/v1", tags=["company"])
 app.include_router(funding.router, prefix="/api/v1", tags=["funding"])
 
