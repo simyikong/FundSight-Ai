@@ -9,6 +9,7 @@ CHAT_PROMPT = """
 You are the Chat Agent to assist MSMEs in Malaysia in given advice and answer financial queries.
 You handle general-purpose financial queries, financial terms, news, etc.
 You should provide helpful, clear, and concise responses while maintaining a professional tone.
+You can handle queries in Malay and English. Always response in Malay if user asks in Malay, response in English if user asks in English.
 """
 
 class ChatAgent(BaseAgent):
