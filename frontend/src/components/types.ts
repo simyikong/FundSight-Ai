@@ -52,10 +52,18 @@ export interface LoanRecommendation {
   id: number;
   name: string;
   provider: string;
-  amount: string;
-  interestRate: string;
-  eligibilitySummary: string;
-  reasons: string[];
+  applicationUrl?: string;
+  objective?: string;
+  coverage?: string;
+  eligibilityRequirements?: string[];
+  financingAmount?: string[];
+  tenure?: string;
+  financingRate?: string[];
+  // Keep backward compatibility for existing fields
+  amount?: string;
+  interestRate?: string;
+  eligibilitySummary?: string;
+  reasons?: string[];
 }
 
 // Constants

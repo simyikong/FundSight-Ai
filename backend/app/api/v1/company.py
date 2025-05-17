@@ -63,6 +63,44 @@ async def get_company_profile(db: Session = Depends(get_db)):
         logger.error(f"Error fetching company profile: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=f"Error fetching company profile: {str(e)}")
 
+@router.get("/company/status")
+async def check_company_profile_status(db: Session = Depends(get_db)):
+    """
+    Check if the company profile is complete
+    """
+    try:
+        # Get the first company record
+        company = db.query(Company).first()
+        
+        # If no company exists, return false
+        if not company:
+            return {"isComplete": False}
+        
+        # Check if required fields are filled
+        required_fields = [
+            company.company_name,
+            company.registration_number,
+            company.company_type,
+            company.industry
+        ]
+        
+        is_complete = all(field and field.strip() != "" for field in required_fields)
+        
+        return {
+            "isComplete": is_complete,
+            "missingFields": [] if is_complete else [
+                field for field, value in {
+                    "companyName": company.company_name,
+                    "registrationNumber": company.registration_number,
+                    "companyType": company.company_type,
+                    "industry": company.industry
+                }.items() if not value or value.strip() == ""
+            ]
+        }
+    except Exception as e:
+        logger.error(f"Error checking company profile status: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error checking company profile status: {str(e)}")
+
 @router.post("/company/update")
 async def update_company_profile(
     profile_data: dict = Body(...),
