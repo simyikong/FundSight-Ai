@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Box } from '@mui/material';
 import { LoanRecommendation } from '../../components/types';
 import RecommendationForm from './RecommendationForm';
@@ -12,6 +12,7 @@ interface LoanRecommendationSectionProps {
   onLoanAmountChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onAdditionalContextChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isEnabled: boolean;
+  isLoading?: boolean;
   recommendations: LoanRecommendation[];
   onGenerateRecommendations: () => void;
 }
@@ -24,21 +25,10 @@ const LoanRecommendationSection: React.FC<LoanRecommendationSectionProps> = ({
   onLoanAmountChange,
   onAdditionalContextChange,
   isEnabled,
+  isLoading = false,
   recommendations,
   onGenerateRecommendations
 }) => {
-  const [loading, setLoading] = useState(false);
-
-  const handleGenerateRecommendations = () => {
-    setLoading(true);
-    onGenerateRecommendations();
-    
-    // Simulate loading state for a better UX
-    setTimeout(() => {
-      setLoading(false);
-    }, 1500);
-  };
-
   return (
     <Box>
       <RecommendationForm
@@ -48,9 +38,9 @@ const LoanRecommendationSection: React.FC<LoanRecommendationSectionProps> = ({
         onLoanPurposeChange={onLoanPurposeChange}
         onLoanAmountChange={onLoanAmountChange}
         onAdditionalContextChange={onAdditionalContextChange}
-        onGenerateRecommendations={handleGenerateRecommendations}
+        onGenerateRecommendations={onGenerateRecommendations}
         isEnabled={isEnabled}
-        isLoading={loading}
+        isLoading={isLoading}
       />
 
       {recommendations.length > 0 && (

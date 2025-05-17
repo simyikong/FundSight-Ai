@@ -8,8 +8,20 @@ import {
   Grid,
   Button,
   CircularProgress,
-  useTheme
+  useTheme,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+  ListItemSecondaryAction,
+  IconButton
 } from '@mui/material';
+import HistoryIcon from '@mui/icons-material/History';
+import RestoreIcon from '@mui/icons-material/Restore';
+import CloseIcon from '@mui/icons-material/Close';
 import axios from 'axios';
 import Layout from '../components/Layout';
 import { 
@@ -23,6 +35,15 @@ import { LoanRecommendation } from '../components/types';
 
 const API_BASE_URL = 'http://localhost:8000/api/v1';
 
+interface RecommendationHistory {
+  id: number;
+  funding_purpose: string;
+  requested_amount: number;
+  additional_context?: string;
+  created_at: string;
+  recommendations?: LoanRecommendation[];
+}
+
 const FundingRecommendations: React.FC = () => {
   // Loan recommendation state
   const [loanPurpose, setLoanPurpose] = useState('');
@@ -30,12 +51,19 @@ const FundingRecommendations: React.FC = () => {
   const [additionalContext, setAdditionalContext] = useState('');
   const [recommendations, setRecommendations] = useState<LoanRecommendation[]>([]);
   const [isRecommendationEnabled, setIsRecommendationEnabled] = useState(false);
+  const [isGenerating, setIsGenerating] = useState(false);
+  
+  // History state
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [recommendationHistory, setRecommendationHistory] = useState<RecommendationHistory[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   
   // Profile status state
   const [hasCompletedProfile, setHasCompletedProfile] = useState(false);
   const [missingFields, setMissingFields] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [companyId, setCompanyId] = useState<number | null>(null);
 
   const theme = useTheme();
   const location = useLocation();
@@ -84,7 +112,13 @@ const FundingRecommendations: React.FC = () => {
         setHasCompletedProfile(response.data.isComplete);
         setMissingFields(response.data.missingFields || []);
         setIsRecommendationEnabled(response.data.isComplete);
+        setCompanyId(response.data.companyId || 1); // Default to 1 for testing if not available
         setLoading(false);
+        
+        // If profile is complete, try to fetch existing recommendations
+        if (response.data.isComplete && response.data.companyId) {
+          fetchExistingRecommendations(response.data.companyId);
+        }
       } catch (err) {
         console.error('Error checking profile status:', err);
         setError('Could not check profile completion status');
@@ -95,119 +129,113 @@ const FundingRecommendations: React.FC = () => {
     checkProfileStatus();
   }, []);
 
-  const fetchRecommendations = () => {
-    setLoading(true);
+  // Fetch existing recommendations for the company
+  const fetchExistingRecommendations = async (companyId: number) => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/funding/recommendations/${companyId}`);
+      if (response.data && response.data.recommendations) {
+        setRecommendations(response.data.recommendations);
+        setLoanPurpose(response.data.funding_purpose || '');
+        setLoanAmount(response.data.requested_amount?.toString() || '');
+        setAdditionalContext(response.data.additional_context || '');
+      }
+    } catch (err) {
+      console.log('No existing recommendations found or error fetching them');
+      // This is not a critical error, so we don't set the error state
+    }
+  };
+
+  const fetchRecommendations = async () => {
+    if (!companyId) {
+      setError('Company profile not found');
+      return;
+    }
+
+    if (!loanPurpose || !loanAmount) {
+      setError('Please provide both loan purpose and amount');
+      return;
+    }
+
+    setIsGenerating(true);
+    setError(null);
     
-    // Simulate API call with a timeout
-    setTimeout(() => {
-      // Sample data - this would come from your API
-      const sampleRecommendations: LoanRecommendation[] = [
-        {
-          id: 1,
-          name: 'SME Working Capital Loan',
-          provider: 'Bank Negara Malaysia',
-          amount: 'Up to RM500,000',
-          interestRate: '4.00% - 7.00% p.a.',
-          eligibilitySummary: 'Malaysian SMEs with minimum 2 years of operation',
-          applicationUrl: 'https://www.bnm.gov.my/sme-financing',
-          objective: 'To assist Malaysian SMEs in meeting their working capital requirements and daily operational expenditure.',
-          coverage: 'Working capital, operational expenditures, and business growth.',
-          eligibilityRequirements: [
-            'Business must be registered in Malaysia with minimum 51% Malaysian ownership',
-            'Business must have been in operation for at least 2 years',
-            'Annual sales turnover not exceeding RM50 million OR full-time employees not exceeding 200 workers',
-            'Able to provide latest 6 months bank statements and latest 2 years financial statements'
-          ],
-          financingAmount: [
-            'Minimum: RM50,000',
-            'Maximum: RM500,000'
-          ],
-          tenure: 'Up to 7 years',
-          financingRate: [
-            'For Bumiputera SMEs: 4.00% p.a.',
-            'For other SMEs: 5.00% - 7.00% p.a.'
-          ],
-          reasons: [
-            'Your business has been operating for 3 years, meeting the minimum requirement',
-            'Based on your profile, you qualify as an SME under Bank Negara guidelines',
-            'Your financial statements indicate a need for working capital'
-          ]
-        },
-        {
-          id: 2,
-          name: 'Industry Digitalization Grant',
-          provider: 'MDEC',
-          amount: 'Up to RM200,000',
-          interestRate: '0% (Grant)',
-          eligibilitySummary: 'Tech SMEs focusing on digital transformation',
-          applicationUrl: 'https://mdec.my/digital-economy-initiatives',
-          objective: 'To accelerate digitalization among SMEs in Malaysia, enhancing productivity and business sustainability.',
-          coverage: 'Digital transformation projects, technology adoption, and skills development.',
-          eligibilityRequirements: [
-            'SME with minimum 60% Malaysian shareholding',
-            'In operation for at least 1 year with proper business registration',
-            'Annual sales turnover between RM300,000 and RM50 million',
-            'Project must demonstrate clear digital adoption objectives',
-            'Must not have received similar grant from other government agencies'
-          ],
-          financingAmount: [
-            'Tier 1 (Basic Digitalization): Up to RM50,000',
-            'Tier 2 (Comprehensive Digital Transformation): Up to RM200,000'
-          ],
-          tenure: 'One-time grant with 12 months implementation period',
-          financingRate: [
-            '50% matching grant (you cover 50%, grant covers 50%)',
-            'Reimbursement basis upon completion of specific milestones'
-          ],
-          reasons: [
-            'Your business qualifies as an SME under MDEC guidelines',
-            'Based on your financial data, you meet the minimum annual sales requirement',
-            'Your industry sector is prioritized under the current grant cycle'
-          ]
-        },
-        {
-          id: 3,
-          name: 'Business Expansion Loan',
-          provider: 'SME Bank',
-          amount: 'RM250,000 - RM1,000,000',
-          interestRate: '4.75% - 6.50% p.a.',
-          eligibilitySummary: 'Growing SMEs looking to expand operations',
-          applicationUrl: 'https://www.smebank.com.my/en/business-financing',
-          objective: 'To finance business expansion activities for established SMEs with proven track record.',
-          coverage: 'Purchase of machinery/equipment, factory/office renovation, facility expansion, and market expansion.',
-          eligibilityRequirements: [
-            'Malaysian-owned business (at least 51% Malaysian shareholding)',
-            'Business in operation for minimum 3 years',
-            'Profitable for at least 2 of the last 3 years',
-            'No adverse records with CTOS, CCRIS or any financial institution',
-            'Debt Service Coverage Ratio (DSCR) of at least 1.5x'
-          ],
-          financingAmount: [
-            'Minimum: RM250,000',
-            'Maximum: RM1,000,000',
-            'Up to 80% of total project cost'
-          ],
-          tenure: '5 to 7 years',
-          financingRate: [
-            'Base Rate + 1.00% to 2.75% p.a.',
-            'Effective rate: 4.75% - 6.50% p.a.'
-          ],
-          reasons: [
-            'Your business has shown consistent growth for the past 3 years',
-            'Your debt-to-equity ratio meets the bank\'s requirements',
-            'Your financial projections demonstrate ability to service the loan'
-          ]
-        }
-      ];
+    try {
+      const response = await axios.post(`${API_BASE_URL}/funding/recommendations`, {
+        company_id: companyId,
+        funding_purpose: loanPurpose,
+        requested_amount: parseFloat(loanAmount),
+        additional_context: additionalContext || undefined
+      });
       
-      console.log('Setting recommendations:', sampleRecommendations);
-      setRecommendations(sampleRecommendations);
-      setLoading(false);
-    }, 1500); // 1.5 second delay to simulate API call
+      if (response.data && response.data.recommendations) {
+        setRecommendations(response.data.recommendations);
+      } else {
+        setError('Received an invalid response from the server');
+      }
+    } catch (err: any) {
+      console.error('Error fetching recommendations:', err);
+      setError(err.response?.data?.detail || 'Failed to generate recommendations');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const fetchRecommendationHistory = async () => {
+    if (!companyId) return;
+    
+    setIsLoadingHistory(true);
+    try {
+      // Call the history API endpoint
+      const response = await axios.get(`${API_BASE_URL}/funding/history/${companyId}`);
+      setRecommendationHistory(response.data || []);
+    } catch (err) {
+      console.error('Error fetching recommendation history:', err);
+      setRecommendationHistory([]);
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  const handleHistoryOpen = () => {
+    setHistoryOpen(true);
+    fetchRecommendationHistory();
+  };
+
+  const handleHistoryClose = () => {
+    setHistoryOpen(false);
+  };
+
+  const restoreRecommendation = (item: RecommendationHistory) => {
+    setLoanPurpose(item.funding_purpose);
+    setLoanAmount(item.requested_amount.toString());
+    setAdditionalContext(item.additional_context || '');
+    
+    // If recommendations are included in history, use them directly
+    if (item.recommendations && item.recommendations.length > 0) {
+      setRecommendations(item.recommendations);
+    } else {
+      // Otherwise fetch recommendations
+      setTimeout(() => {
+        fetchRecommendations();
+      }, 100);
+    }
+    
+    setHistoryOpen(false);
   };
 
   const handleCompanyProfileClick = () => {
     window.location.href = '/company-profile';
+  };
+
+  const formatDate = (dateString: string) => {
+    const options: Intl.DateTimeFormatOptions = { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    };
+    return new Date(dateString).toLocaleDateString(undefined, options);
   };
 
   if (loading) {
@@ -237,7 +265,19 @@ const FundingRecommendations: React.FC = () => {
       subtitle="Discover personalized funding options for your business"
     >
       <Paper elevation={0} sx={{ p: 3, border: '1px solid', borderColor: 'divider' }}>
-        <Typography variant="h6" gutterBottom>Funding Options</Typography>
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="h6">Funding Options</Typography>
+          {hasCompletedProfile && (
+            <Button
+              variant="outlined"
+              startIcon={<HistoryIcon />}
+              onClick={handleHistoryOpen}
+              size="small"
+            >
+              History
+            </Button>
+          )}
+        </Box>
         <Divider sx={{ mb: 3 }} />
         
         {!hasCompletedProfile ? (
@@ -254,11 +294,84 @@ const FundingRecommendations: React.FC = () => {
             onLoanAmountChange={(e: React.ChangeEvent<HTMLInputElement>) => setLoanAmount(e.target.value)}
             onAdditionalContextChange={(e: React.ChangeEvent<HTMLInputElement>) => setAdditionalContext(e.target.value)}
             isEnabled={isRecommendationEnabled}
+            isLoading={isGenerating}
             recommendations={recommendations}
             onGenerateRecommendations={fetchRecommendations}
           />
         )}
       </Paper>
+
+      {/* History Dialog */}
+      <Dialog 
+        open={historyOpen} 
+        onClose={handleHistoryClose} 
+        maxWidth="sm" 
+        fullWidth
+      >
+        <DialogTitle>
+          <Box display="flex" justifyContent="space-between" alignItems="center">
+            <Typography variant="h6">Recommendation History</Typography>
+            <IconButton 
+              edge="end" 
+              color="inherit" 
+              onClick={handleHistoryClose} 
+              aria-label="close"
+            >
+              <CloseIcon />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers>
+          {isLoadingHistory ? (
+            <Box display="flex" justifyContent="center" my={3}>
+              <CircularProgress />
+            </Box>
+          ) : recommendationHistory.length > 0 ? (
+            <List>
+              {recommendationHistory.map((item) => (
+                <ListItem key={item.id} divider>
+                  <ListItemText
+                    primary={
+                      <Typography variant="subtitle1">
+                        {item.funding_purpose} - RM{item.requested_amount.toLocaleString()}
+                      </Typography>
+                    }
+                    secondary={
+                      <>
+                        <Typography variant="body2" color="text.secondary">
+                          {item.additional_context || "No additional context"}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {formatDate(item.created_at)}
+                        </Typography>
+                      </>
+                    }
+                  />
+                  <ListItemSecondaryAction>
+                    <IconButton 
+                      edge="end" 
+                      aria-label="restore"
+                      onClick={() => restoreRecommendation(item)}
+                      title="Restore these inputs"
+                    >
+                      <RestoreIcon />
+                    </IconButton>
+                  </ListItemSecondaryAction>
+                </ListItem>
+              ))}
+            </List>
+          ) : (
+            <Box py={2} textAlign="center">
+              <Typography variant="body1" color="text.secondary">
+                No recommendation history available
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleHistoryClose}>Close</Button>
+        </DialogActions>
+      </Dialog>
     </Layout>
   );
 };
