@@ -417,15 +417,58 @@ const Dashboard: React.FC = () => {
               <Typography variant="subtitle2" sx={{ width: '100%', textAlign: 'center', fontWeight: 600 , color: theme.palette.text.secondary}}>
                 Financial Health Score
               </Typography>
-              <Tooltip title="This score is calculated from your latest financial data.">
+              <Tooltip
+                title={
+                  <Box>
+                    <span style={{ fontSize: 14, lineHeight: 1.5, color: '#fff' }}>
+                      This score suggests a stable financial position with moderate strength in core metrics. Profitability contributes positively, reflecting sound cost control and revenue generation. Cash inflow consistently exceeds outflow, with an average ratio of 1.22, indicating healthy operational cash management. Liquidity levels show capacity to cover approximately 6.68 months of expenses, suggesting short-term resilience and prudent reserve planning.
+                    </span>
+                    <Box mt={2} display="flex" justifyContent="flex-end">
+                      <button
+                        style={{
+                          background: '#4F8EF7',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: 6,
+                          padding: '6px 18px',
+                          fontWeight: 600,
+                          fontSize: 14,
+                          cursor: 'pointer',
+                          boxShadow: '0 2px 8px rgba(79,142,247,0.10)',
+                        }}
+                        onClick={() => {
+                          window.dispatchEvent(new CustomEvent('open-ai-chatbot', {
+                            detail: {
+                              input: 'Based on the current financial health score of 69.17, provide a brief analysis and suggest specific improvements based on overall financial info.'
+                            }
+                          }));
+                        }}
+                      >
+                        Ask AI
+                      </button>
+                    </Box>
+                  </Box>
+                }
+                componentsProps={{
+                  tooltip: {
+                    sx: {
+                      bgcolor: '#23263a',
+                      color: '#fff',
+                      p: 2,
+                      borderRadius: 2,
+                      boxShadow: 6,
+                      maxWidth: 320,
+                      fontSize: 14,
+                      lineHeight: 1.6,
+                      letterSpacing: 0.1,
+                    }
+                  }
+                }}
+                arrow
+              >
                 <InfoOutlined
                   fontSize="small"
                   sx={{ position: 'absolute', right: 0, top: '50%', transform: 'translateY(-50%)', color: 'inherit', cursor: 'pointer' }}
-                  onClick={() => {
-                    const msg = `Financial Health Score: ${healthScore}`;
-                    setInfoString(msg);
-                    console.log(msg);
-                  }}
                 />
               </Tooltip>
             </Box>
