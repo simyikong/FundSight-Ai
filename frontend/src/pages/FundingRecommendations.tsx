@@ -68,7 +68,9 @@ const FundingRecommendations: React.FC = () => {
       setIsRecommendationEnabled(true);
       
       // Generate recommendations automatically when loan data is received
-      // generateRecommendations();
+      if (loanData.suggest_loan) {
+        fetchRecommendations();
+      }
     }
   }, [location.state]);
 
