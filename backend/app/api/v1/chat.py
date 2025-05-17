@@ -9,6 +9,8 @@ from ...agents.financial_agent import FinancialAgent
 from ...agents.budget_agent import BudgetAgent
 from ...agents.loan_agent import LoanAgent
 from ...agents.document_agent import DocumentAgent
+from ...agents.insight_agent import InsightAgent
+from ...agents.mcp_agent import MCPAgent
 import logging
 import json
 import asyncio
@@ -31,7 +33,9 @@ AGENT_MAP = {
     'BudgetAgent': BudgetAgent,
     'LoanAgent': LoanAgent,
     'DocumentAgent': DocumentAgent,
-    'ChatAgent': ChatAgent
+    'ChatAgent': ChatAgent,
+    'InsightAgent': InsightAgent,
+    'MCPAgent': MCPAgent
 }
 
 def _clean_ollama_response(text):
@@ -43,6 +47,13 @@ def _clean_ollama_response(text):
     
     return "\n".join(cleaned_lines)
 
+def _clean_response(text):
+    cleaned = re.sub(r'\[TOOL_CALL\].*?\[TOOL_RESPONSE\]', '', text, flags=re.DOTALL)
+    match = re.search(r'(Here is the line chart.*)', cleaned, re.DOTALL)
+    if match:
+        return match.group(1).strip()
+    return cleaned.strip()
+    
 async def stream_response(messages, agent):
     try:
         for chunk in agent.handle(messages=messages):
@@ -55,6 +66,23 @@ async def stream_response(messages, agent):
         logger.error(f"Error in streaming response: {str(e)}", exc_info=True)
         yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
+async def stream_tool_response(messages, agent):
+    try:
+        buffer = ""
+        for chunk in agent.handle(messages=messages):
+            if chunk.strip() == "":
+                chunk = " "
+            buffer += chunk
+        logger.info(f"Buffer: {buffer}")        
+        cleaned_response = _clean_response(buffer)
+        logger.info(f"Cleaned response: {cleaned_response}")
+
+        yield f"data: {json.dumps({'content': cleaned_response})}\n\n"
+        await asyncio.sleep(0.01)  
+    except Exception as e:
+        logger.error(f"Error in streaming response: {str(e)}", exc_info=True)
+        yield f"data: {json.dumps({'error': str(e)})}\n\n"
+        
 async def stream_json_response(messages, agent):
     try:
         buffer = ""
@@ -66,7 +94,7 @@ async def stream_json_response(messages, agent):
             
             # Add to buffer
             buffer += cleaned_chunk
-            
+
             try:
                 # Try to parse the buffer as JSON
                 json_data = json.loads(buffer)
@@ -76,6 +104,8 @@ async def stream_json_response(messages, agent):
                         loan_data["funding_purpose"] = json_data["funding_purpose"]
                     if "requested_amount" in json_data:
                         loan_data["requested_amount"] = json_data["requested_amount"]
+                    if "suggest_loan" in json_data:
+                        loan_data["suggest_loan"] = json_data["suggest_loan"]
                     
                     # Stream both message content and loan data
                     response_data = {
@@ -125,6 +155,8 @@ async def chat_stream(request: ChatRequest):
 
         if agent_name == 'LoanAgent':
             response_stream = stream_json_response(messages, agent)
+        elif agent_name == 'InsightAgent':
+            response_stream = stream_tool_response(messages, agent)
         else:
             response_stream = stream_response(messages, agent)
 
