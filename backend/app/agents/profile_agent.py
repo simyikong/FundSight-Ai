@@ -1,5 +1,9 @@
 # agents/profile_assistant.py
 from .base_agent import BaseAgent
+from qwen_agent.utils.output_beautify import typewriter_print
+import logging
+
+logger = logging.getLogger(__name__)
 
 PROFILE_PROMPT = """
 /no_think

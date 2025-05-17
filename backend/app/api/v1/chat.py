@@ -11,6 +11,7 @@ from ...agents.loan_agent import LoanAgent
 from ...agents.document_agent import DocumentAgent
 import logging
 import json
+import asyncio
 
 # Configure logging
 logging.basicConfig(
@@ -41,7 +42,58 @@ def _clean_ollama_response(text):
     cleaned_lines = [line.strip() for line in lines if line.strip() != ""]
     
     return "\n".join(cleaned_lines)
-    
+
+async def stream_response(messages, agent):
+    try:
+        for chunk in agent.handle(messages=messages):
+            cleaned_chunk = _clean_ollama_response(chunk)
+            if cleaned_chunk.strip() == "":
+                cleaned_chunk = " "
+            yield f"data: {json.dumps({'content': cleaned_chunk})}\n\n"
+            await asyncio.sleep(0.01)  
+    except Exception as e:
+        logger.error(f"Error in streaming response: {str(e)}", exc_info=True)
+        yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+@router.post("/chat/stream")
+async def chat_stream(request: ChatRequest):
+    try:
+        logger.info(f"Received streaming request: {request}")
+        # Convert Message objects to dictionaries
+        messages = [
+            {'role': msg.role, 'content': msg.content} 
+            for msg in (request.message_history if request.message_history else [])
+        ]
+        
+        # Add new user message
+        if not request.file:
+            messages.append({'role': 'user', 'content': request.query})
+        else:
+            messages.append({'role': 'user', 'content': [{'text': request.query}]})
+            if request.file:
+                messages[-1]['content'].append({'file': request.file})
+
+        # Route the query to the appropriate agent
+        agent_name = router_agent.handle(messages).strip()
+        agent_name = _clean_ollama_response(agent_name)
+        logger.info(f"Routing to agent: {agent_name}")
+        
+        if agent_name in AGENT_MAP:
+            agent_class = AGENT_MAP[agent_name]
+            agent = agent_class()
+        else:
+            agent = chat_agent
+
+        return StreamingResponse(
+            stream_response(messages, agent),
+            media_type="text/event-stream"
+        )
+
+    except Exception as e:
+        logger.error(f"Error in processing streaming response: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Keep the original endpoint for backward compatibility
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest):
     try:

@@ -97,39 +97,68 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
     setMessages(prev => [...prev, newMessage]);
 
+    // Add an empty assistant message that will be updated with streaming content
+    setMessages(prev => [...prev, {
+      role: 'assistant',
+      content: ''
+    }]);
+
     try {
       const messageData = {
         query: input,
         message_history: messages,
         ...(fileInfo && { file: fileInfo.data })
       };
-      const llm_response = await chatApi.sendMessage(messageData);
 
-      console.log('llm_response', llm_response);
-      let content: string;
-      if (typeof llm_response.data.response === 'string') {
-        content = llm_response.data.response;
-      } else if (typeof llm_response.data.response === 'object' && llm_response.data.response !== null) {
-        const responseObject = JSON.parse(llm_response.data.response);
-        content = responseObject.message;
-      } else {
-        content = 'Unexpected response format.';
+      let accumulatedContent = '';
+      let switchTab = null;
+
+      await chatApi.sendStreamingMessage(
+        messageData,
+        (chunk) => {
+          accumulatedContent += chunk;
+          setMessages(prev => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage.role === 'assistant') {
+              lastMessage.content = accumulatedContent;
+            }
+            return newMessages;
+          });
+        },
+        (error) => {
+          console.error('Error in streaming:', error);
+          setMessages(prev => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage.role === 'assistant') {
+              lastMessage.content = 'Sorry, there was an error processing your message.';
+            }
+            return newMessages;
+          });
+        }
+      );
+
+      // Check if the response contains a switch_tab command
+      try {
+        const responseObject = JSON.parse(accumulatedContent);
+        if (responseObject.switch_tab) {
+          handleTabSwitch(responseObject.switch_tab);
+        }
+      } catch (e) {
+        // If parsing fails, it means the response is plain text, which is fine
       }
 
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: content
-      }]);
-
-      if (llm_response.data.switch_tab) {
-        handleTabSwitch(llm_response.data.switch_tab);
-      }
     } catch (error) {
       console.error('Error sending message:', error);
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Sorry, there was an error processing your message.'
-      }]);
+      setMessages(prev => {
+        const newMessages = [...prev];
+        const lastMessage = newMessages[newMessages.length - 1];
+        if (lastMessage.role === 'assistant') {
+          lastMessage.content = 'Sorry, there was an error processing your message.';
+        }
+        return newMessages;
+      });
     } finally {
       setIsLoading(false);
     }
@@ -215,32 +244,67 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     setInput('');
     setFile(null);
     setIsLoading(true);
+
+    // Add an empty assistant message that will be updated with streaming content
+    setMessages(prev => [...prev, {
+      role: 'assistant',
+      content: ''
+    }]);
+
     try {
       const messageData = {
         query: msg,
         message_history: messages,
       };
-      const llm_response = await chatApi.sendMessage(messageData);
-      let content: string;
-      if (typeof llm_response.data.response === 'string') {
-        content = llm_response.data.response;
-      } else if (typeof llm_response.data.response === 'object' && llm_response.data.response !== null) {
-        content = llm_response.data.response.message;
-      } else {
-        content = 'Unexpected response format.';
+
+      let accumulatedContent = '';
+      let switchTab = null;
+
+      await chatApi.sendStreamingMessage(
+        messageData,
+        (chunk) => {
+          accumulatedContent += chunk;
+          setMessages(prev => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage.role === 'assistant') {
+              lastMessage.content = accumulatedContent;
+            }
+            return newMessages;
+          });
+        },
+        (error) => {
+          console.error('Error in streaming:', error);
+          setMessages(prev => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage.role === 'assistant') {
+              lastMessage.content = 'Sorry, there was an error processing your message.';
+            }
+            return newMessages;
+          });
+        }
+      );
+
+      // Check if the response contains a switch_tab command
+      try {
+        const responseObject = JSON.parse(accumulatedContent);
+        if (responseObject.switch_tab) {
+          handleTabSwitch(responseObject.switch_tab);
+        }
+      } catch (e) {
+        // If parsing fails, it means the response is plain text, which is fine
       }
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: content
-      }]);
-      if (llm_response.data.switch_tab) {
-        handleTabSwitch(llm_response.data.switch_tab);
-      }
+
     } catch (error) {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: 'Sorry, there was an error processing your message.'
-      }]);
+      setMessages(prev => {
+        const newMessages = [...prev];
+        const lastMessage = newMessages[newMessages.length - 1];
+        if (lastMessage.role === 'assistant') {
+          lastMessage.content = 'Sorry, there was an error processing your message.';
+        }
+        return newMessages;
+      });
     } finally {
       setIsLoading(false);
     }
