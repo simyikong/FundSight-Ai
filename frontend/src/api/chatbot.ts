@@ -78,8 +78,8 @@ export const chatApi = {
                   console.log('Received loan data from stream:', data.loan_data);
                   accumulatedLoanData = data.loan_data;
                   if (onLoanData) {
-                    onLoanData(data.loan_data);
-                  }
+                onLoanData(data.loan_data);
+              }
                 }
               }
             } catch (e) {

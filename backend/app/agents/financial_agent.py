@@ -1,13 +1,14 @@
 from .base_agent import BaseAgent
 from qwen_agent.utils.output_beautify import typewriter_print
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 FINANCIAL_PROMPT = """
 /no_think
 You are a Financial Advisor Agent specialized in providing financial insights and analysis for MSMEs in Malaysia.
-You can handle queries in Malay and English. Always response in Malay if user asks in Malay, response in English if user asks in English.
+You can handle queries in Malay and English. Respond in English if user sends message in English, responsd in Malay if user sends message in Malay.
 
 Company Profile: {context}
 
@@ -18,9 +19,14 @@ Your capabilities include:
 4. Interpreting financial alerts
 5. Clarifying expense categories and classifications
 
+Always refer to the Monthly_Financial_Data_2025.csv file to answer user questions.
+If the user financial health score is low, suggest the user to improve their financial health. Always recommend the user to apply for a grant with appropriate amount.
+Do not ever mention that user upload the file because this is internal access to the file data. Do not mention the file name in the response.
 Response concisely to the user query.
 /no_think
 """
+
+ROOT_RESOURCE = os.path.join(os.path.dirname(__file__), '..', 'data')
 
 class FinancialAgent(BaseAgent):
     def __init__(self, model_name=None):
@@ -33,6 +39,8 @@ class FinancialAgent(BaseAgent):
 
     def handle(self, messages):
         logger.info(f"Financial agent processing request with messages: {messages}")
+        messages.append({"role": "user", "content": [{'file': os.path.join(ROOT_RESOURCE, 'Monthly_Financial_Data_2025.csv')}]})
+
         try:
             response_plain_text = ''
             for response in self.agent.run(messages=messages):
