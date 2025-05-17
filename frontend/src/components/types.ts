@@ -3,13 +3,21 @@ import React from 'react';
 
 export interface CompanyProfile {
   companyName: string;
+  website?: string;
   registrationNumber: string;
   companyType: string;
   industry: string;
   location: string;
   yearsOfOperation: string;
+  registrationYear?: string;
   employees: string;
+  founderGender?: string;
+  founderEthnicity?: string;
+  specialCategory?: string;
+  missionStatement?: string;
   description: string;
+  previousGrantsReceived?: string;
+  interestedGrantTypes?: string[];
 }
 
 export interface UploadedDocument {
