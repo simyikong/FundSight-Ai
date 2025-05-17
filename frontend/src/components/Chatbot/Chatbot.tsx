@@ -123,7 +123,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData, input }) 
     setMessages(prev => [...prev, newMessage]);
 
     // Check if the message is about charts
-    const isChartRequest = input && input.toLowerCase().includes('generate') && input.toLowerCase().includes('chart');
+    const isChartRequest = inputValue.toLowerCase().includes('generate') && inputValue.toLowerCase().includes('chart');
 
     // If it's a chart request, wait for 5 seconds before showing the response
     if (isChartRequest) {
