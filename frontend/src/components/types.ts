@@ -9,9 +9,6 @@ export interface CompanyProfile {
   location: string;
   yearsOfOperation: string;
   employees: string;
-  revenue: string;
-  netProfit: string;
-  taxStatus: string;
   description: string;
 }
 
