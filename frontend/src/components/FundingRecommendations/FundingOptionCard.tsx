@@ -197,14 +197,6 @@ const FundingOptionCard: React.FC<FundingOptionCardProps> = ({ recommendation, i
   const [submittingFeedback, setSubmittingFeedback] = useState(false);
   const [isSuccessfulFunding, setIsSuccessfulFunding] = useState(false);
 
-  // Check local storage to see if this funding has been marked as successful
-  useEffect(() => {
-    const successfulFundings = JSON.parse(localStorage.getItem('successfulFundings') || '[]');
-    if (successfulFundings.includes(recommendation.id)) {
-      setIsSuccessfulFunding(true);
-    }
-  }, [recommendation.id]);
-
   const toggleExpand = () => {
     setExpanded(!expanded);
   };
@@ -216,12 +208,8 @@ const FundingOptionCard: React.FC<FundingOptionCardProps> = ({ recommendation, i
   };
 
   const handleSuccessClick = () => {
-    if (isSuccessfulFunding) {
-      // If already marked as successful, show a message
-      setFeedbackSnackbarOpen(true);
-    } else {
-      setSuccessDialogOpen(true);
-    }
+    // For hackathon demo: Always show the success dialog regardless of previous feedback
+    setSuccessDialogOpen(true);
   };
 
   const handleDialogClose = () => {
@@ -232,29 +220,18 @@ const FundingOptionCard: React.FC<FundingOptionCardProps> = ({ recommendation, i
     try {
       setSubmittingFeedback(true);
       
-      // Call the real API endpoint
-      await axios.post(`${API_BASE_URL}/funding/feedback`, {
-        company_id: 1, // In a real app this would come from context or props
-        recommendation_id: recommendation.id,
-        recommendation_name: recommendation.name,
-        provider: recommendation.provider,
-        is_success: true,
-        feedback_type: "application_success"
-      });
-      
-      console.log('Success feedback sent for recommendation:', recommendation.id);
-      
-      // Save success state to local storage
-      const successfulFundings = JSON.parse(localStorage.getItem('successfulFundings') || '[]');
-      successfulFundings.push(recommendation.id);
-      localStorage.setItem('successfulFundings', JSON.stringify(successfulFundings));
-      
-      // Update UI state
-      setIsSuccessfulFunding(true);
-      setFeedbackSnackbarOpen(true);
+      // For hackathon demo: Just simulate an API call with a timeout
+      setTimeout(() => {
+        console.log('Success feedback simulated for recommendation:', recommendation.id);
+        
+        // No localStorage saving - just update UI state for the current session
+        setIsSuccessfulFunding(true);
+        setFeedbackSnackbarOpen(true);
+        setSubmittingFeedback(false);
+        setSuccessDialogOpen(false);
+      }, 1000); // Simulate 1 second API call
     } catch (error) {
-      console.error('Error sending feedback:', error);
-    } finally {
+      console.error('Error simulating feedback:', error);
       setSubmittingFeedback(false);
       setSuccessDialogOpen(false);
     }
@@ -539,9 +516,7 @@ const FundingOptionCard: React.FC<FundingOptionCardProps> = ({ recommendation, i
             elevation={6}
             variant="filled"
           >
-            {isSuccessfulFunding 
-              ? "Thank you for your feedback! We'll use this to improve recommendations."
-              : "You've already marked this funding as successful!"}
+            Thank you for your feedback! We'll use this to improve recommendations.
           </Alert>
         </Snackbar>
       </ComparisonCard>
