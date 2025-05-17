@@ -20,16 +20,24 @@ import axios from 'axios';
 const API_BASE_URL = 'http://localhost:8000/api/v1';
 
 const CompanyProfile: React.FC = () => {
-  // Company profile state
+  // Company profile state with all the new fields
   const [profile, setProfile] = useState<CompanyProfileType>({
     companyName: '',
+    website: '',
     registrationNumber: '',
     companyType: '',
     industry: '',
     location: '',
     yearsOfOperation: '',
+    registrationYear: '',
     employees: '',
-    description: ''
+    founderGender: '',
+    founderEthnicity: '',
+    specialCategory: '',
+    missionStatement: '',
+    description: '',
+    previousGrantsReceived: '',
+    interestedGrantTypes: []
   });
 
   // Loading states
@@ -46,7 +54,10 @@ const CompanyProfile: React.FC = () => {
       try {
         setLoading(true);
         const response = await axios.get(`${API_BASE_URL}/company`);
-        setProfile(response.data);
+        setProfile(prevProfile => ({
+          ...prevProfile,
+          ...response.data
+        }));
         setLoading(false);
       } catch (err) {
         console.error('Error fetching company profile:', err);
@@ -59,9 +70,28 @@ const CompanyProfile: React.FC = () => {
   }, []);
 
   // Update profile field
-  const handleProfileChange = (field: keyof CompanyProfileType, value: string) => {
+  const handleProfileChange = (field: keyof CompanyProfileType, value: string | string[]) => {
     setProfile({ ...profile, [field]: value });
   };
+
+  // Add event listener for extracted profile data
+  useEffect(() => {
+    const handleExtractedData = (event: Event) => {
+      const customEvent = event as CustomEvent<{profile: CompanyProfileType}>;
+      if (customEvent.detail && customEvent.detail.profile) {
+        console.log('Received extracted profile data event:', customEvent.detail.profile);
+        setProfile(customEvent.detail.profile);
+      }
+    };
+
+    // Add event listener
+    document.addEventListener('profileDataExtracted', handleExtractedData);
+
+    // Clean up
+    return () => {
+      document.removeEventListener('profileDataExtracted', handleExtractedData);
+    };
+  }, []);
 
   // Save profile to database
   const handleSaveProfile = async () => {
