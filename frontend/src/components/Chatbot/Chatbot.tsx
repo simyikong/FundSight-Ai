@@ -28,7 +28,12 @@ const pulseAnimation = keyframes`
   100% { transform: scale(1); }
 `;
 
-const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
+interface ChatbotProps {
+  onClose: () => void;
+  onLoanData?: (data: { funding_purpose?: string; requested_amount?: string }) => void;
+}
+
+export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData }) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -51,13 +56,19 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
 
   const navigate = useNavigate();
 
-  const handleTabSwitch = (tabName: string) => {
+  const handleTabSwitch = (tabName: string, loanData?: { funding_purpose?: string; requested_amount?: string }) => {
+    console.log('Handling tab switch:', { tabName, loanData });
     switch (tabName) {
       case 'Dashboard':
         navigate('/dashboard');
         break;
       case 'Loan':
-        navigate('/funding-recommendations');
+        console.log('Navigating to funding recommendations with loan data:', loanData);
+        navigate('/funding-recommendations', { 
+          state: { 
+            loanData: loanData || null 
+          } 
+        });
         break;
       case 'Profile':
         navigate('/company-profile');
@@ -111,11 +122,10 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       };
 
       let accumulatedContent = '';
-      let switchTab = null;
 
       await chatApi.sendStreamingMessage(
         messageData,
-        (chunk) => {
+        (chunk: string) => {
           accumulatedContent += chunk;
           setMessages(prev => {
             const newMessages = [...prev];
@@ -126,7 +136,7 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             return newMessages;
           });
         },
-        (error) => {
+        (error: Error) => {
           console.error('Error in streaming:', error);
           setMessages(prev => {
             const newMessages = [...prev];
@@ -136,18 +146,18 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             }
             return newMessages;
           });
+        },
+        (tab: string, loanData?: { funding_purpose?: string; requested_amount?: string }) => {
+          console.log('Tab switch callback received:', { tab, loanData });
+          handleTabSwitch(tab, loanData);
+        },
+        (loanData: { funding_purpose?: string; requested_amount?: string }) => {
+          console.log('Loan data callback received:', loanData);
+          if (onLoanData) {
+            onLoanData(loanData);
+          }
         }
       );
-
-      // Check if the response contains a switch_tab command
-      try {
-        const responseObject = JSON.parse(accumulatedContent);
-        if (responseObject.switch_tab) {
-          handleTabSwitch(responseObject.switch_tab);
-        }
-      } catch (e) {
-        // If parsing fails, it means the response is plain text, which is fine
-      }
 
     } catch (error) {
       console.error('Error sending message:', error);
@@ -258,11 +268,10 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
       };
 
       let accumulatedContent = '';
-      let switchTab = null;
 
       await chatApi.sendStreamingMessage(
         messageData,
-        (chunk) => {
+        (chunk: string) => {
           accumulatedContent += chunk;
           setMessages(prev => {
             const newMessages = [...prev];
@@ -273,7 +282,7 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             return newMessages;
           });
         },
-        (error) => {
+        (error: Error) => {
           console.error('Error in streaming:', error);
           setMessages(prev => {
             const newMessages = [...prev];
@@ -283,18 +292,12 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
             }
             return newMessages;
           });
-        }
+        },
+        (tab: string, loanData?: { funding_purpose?: string; requested_amount?: string }) => {
+          handleTabSwitch(tab, loanData);
+        },
+        onLoanData
       );
-
-      // Check if the response contains a switch_tab command
-      try {
-        const responseObject = JSON.parse(accumulatedContent);
-        if (responseObject.switch_tab) {
-          handleTabSwitch(responseObject.switch_tab);
-        }
-      } catch (e) {
-        // If parsing fails, it means the response is plain text, which is fine
-      }
 
     } catch (error) {
       setMessages(prev => {
@@ -499,14 +502,14 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
     }}>
       <Box sx={{
         display: 'flex',
-        justifyContent: 'space-between',
         alignItems: 'center',
-        px: 2,
-        py: 2.2,
+        justifyContent: 'space-between',
+        p: 2,
         borderBottom: '1px solid rgba(255,255,255,0.1)',
-        background: 'linear-gradient(135deg, rgba(13, 15, 35, 0.98) 0%, rgba(29, 37, 92, 0.95) 100%)',
+        background: 'rgba(0,0,0,0.2)',
         backdropFilter: 'blur(10px)',
-        position: 'relative',
+        position: 'sticky',
+        top: 0,
         zIndex: 1,
       }}>
         <IconButton onClick={onClose} size="small" sx={{
@@ -523,12 +526,8 @@ const Chatbot: React.FC<{ onClose: () => void }> = ({ onClose }) => {
         </IconButton>
 
         <Typography variant="h6" sx={{
-          fontWeight: 700,
-          background: 'linear-gradient(135deg, #E0C3FC 0%, #8EC5FC 100%)',
-          backgroundClip: 'text',
-          WebkitBackgroundClip: 'text',
-          color: 'transparent',
-          letterSpacing: '0.5px',
+          color: '#E0C3FC',
+          fontWeight: 600,
           textShadow: '0 2px 10px rgba(224, 195, 252, 0.2)',
         }}>AI Assistant</Typography>
 

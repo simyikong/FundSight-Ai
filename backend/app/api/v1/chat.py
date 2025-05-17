@@ -55,6 +55,45 @@ async def stream_response(messages, agent):
         logger.error(f"Error in streaming response: {str(e)}", exc_info=True)
         yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
+async def stream_json_response(messages, agent):
+    try:
+        buffer = ""
+        loan_data = {}
+        for chunk in agent.handle(messages=messages):
+            cleaned_chunk = _clean_ollama_response(chunk)
+            if cleaned_chunk.strip() == "":
+                cleaned_chunk = " "
+            
+            # Add to buffer
+            buffer += cleaned_chunk
+            
+            try:
+                # Try to parse the buffer as JSON
+                json_data = json.loads(buffer)
+                if "message" in json_data:
+                    # Extract loan data if present
+                    if "funding_purpose" in json_data:
+                        loan_data["funding_purpose"] = json_data["funding_purpose"]
+                    if "requested_amount" in json_data:
+                        loan_data["requested_amount"] = json_data["requested_amount"]
+                    
+                    # Stream both message content and loan data
+                    response_data = {
+                        'content': json_data['message'],
+                        'loan_data': loan_data if loan_data else None
+                    }
+                    logger.info(f"Response data: {response_data}")
+                    yield f"data: {json.dumps(response_data)}\n\n"
+                    buffer = ""  # Clear buffer after successful parse
+            except json.JSONDecodeError:
+                # If not valid JSON yet, continue buffering
+                continue
+            
+            await asyncio.sleep(0.01)  # Small delay to prevent overwhelming the client
+    except Exception as e:
+        logger.error(f"Error in streaming response: {str(e)}", exc_info=True)
+        yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
 @router.post("/chat/stream")
 async def chat_stream(request: ChatRequest):
     try:
@@ -84,9 +123,33 @@ async def chat_stream(request: ChatRequest):
         else:
             agent = chat_agent
 
+        if agent_name == 'LoanAgent':
+            response_stream = stream_json_response(messages, agent)
+        else:
+            response_stream = stream_response(messages, agent)
+
+        switch_tab = None
+        if agent_name == 'FinancialAgent'or agent_name == 'BudgetAgent':
+            switch_tab = 'Dashboard'
+        elif agent_name == 'LoanAgent':
+            switch_tab = 'Loan'
+        elif agent_name == 'DocumentAgent':
+            switch_tab = 'Document'
+        elif agent_name == 'ProfileAgent':
+            switch_tab = 'Profile'
+
+        # Set up headers
+        headers = {
+            "Access-Control-Expose-Headers": "X-Switch-Tab",
+            "Access-Control-Allow-Headers": "X-Switch-Tab"
+        }
+        if switch_tab:
+            headers["X-Switch-Tab"] = switch_tab
+            
         return StreamingResponse(
-            stream_response(messages, agent),
-            media_type="text/event-stream"
+            response_stream,
+            media_type="text/event-stream",
+            headers=headers
         )
 
     except Exception as e:
