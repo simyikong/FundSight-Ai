@@ -122,32 +122,32 @@ def get_budget_categories(db: Session = Depends(get_db)):
             BudgetCategory(
                 name="Payroll",
                 spent=latest.Payroll,
-                budget=latest.Payroll
+                budget=30000
             ),
             BudgetCategory(
                 name="Marketing & Advertising",
                 spent=latest.Marketing_Advertising,
-                budget=latest.Marketing_Advertising
+                budget=8500
             ),
             BudgetCategory(
                 name="Research & Development",
                 spent=latest.Research_Development,
-                budget=latest.Research_Development
+                budget=16000
             ),
             BudgetCategory(
                 name="Office Rent & Utilities",
                 spent=latest.Office_Rent_Utilities,
-                budget=latest.Office_Rent_Utilities
+                budget=12000
             ),
             BudgetCategory(
                 name="Logistics & Delivery",
                 spent=latest.Logistics_Delivery,
-                budget=latest.Logistics_Delivery
+                budget=6000
             ),
             BudgetCategory(
                 name="Miscellaneous",
                 spent=latest.Miscellaneous,
-                budget=latest.Miscellaneous
+                budget=3000
             )
         ]
     except Exception as e:
