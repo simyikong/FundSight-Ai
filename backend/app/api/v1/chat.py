@@ -64,7 +64,7 @@ async def stream_response(messages, agent):
         prev_chunk = ""
         for chunk in agent.handle(messages=messages):
             if chunk.strip() == "" and prev_chunk.strip() == "":
-                chunk = "\n "  
+                chunk = "\n  "  
             elif chunk.strip() == "":
                 chunk = " "
             prev_chunk = chunk  

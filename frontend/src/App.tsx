@@ -48,7 +48,7 @@ function App() {
     const handler = (event: CustomEvent) => {
       console.log('Chatbot event triggered');
       setChatbotOpen(true);
-      const inputText = "Analyze the financial health score of 69.17% and provide suggestions for improvement.";
+      const inputText = event.detail?.input || "Analyze the financial health score of 69.17% and provide suggestions for improvement.";
       console.log('Setting chatbot input to:', inputText);
       setChatbotInput(inputText);
     };

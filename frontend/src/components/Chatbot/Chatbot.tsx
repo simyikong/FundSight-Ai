@@ -330,7 +330,7 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData, input }) 
 
       recognition.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
-        setInputValue("Based on the current financial health score of 69.17, provide a brief analysis and suggest specific improvements based on overall financial info.");
+        setInputValue(transcript);
       };
 
       recognition.start();
