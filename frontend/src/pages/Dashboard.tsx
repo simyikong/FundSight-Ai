@@ -241,18 +241,17 @@ const Dashboard: React.FC = () => {
 
   const handleReportClick = async () => {
     try {
-      const endDate = new Date().toISOString().split('T')[0];
-      const startDate = new Date(Date.now() - 180 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-      
-      const response = await dashboardApi.generateExecutiveSummary(startDate, endDate);
-      const blob = new Blob([response], { type: 'application/pdf' });
-      const url = window.URL.createObjectURL(blob);
+      // Create a link element
       const a = document.createElement('a');
-      a.href = url;
-      a.download = `executive_summary_${startDate}_to_${endDate}.pdf`;
+      // Set the href to the static PDF file in public directory
+      a.href = '/Executive_Summary_Report_2024.pdf';
+      // Set the download attribute with the desired filename
+      a.download = 'Executive_Summary_Report_2024.pdf';
+      // Append to body
       document.body.appendChild(a);
+      // Trigger click
       a.click();
-      window.URL.revokeObjectURL(url);
+      // Clean up
       document.body.removeChild(a);
     } catch (error) {
       console.error('Error downloading report:', error);

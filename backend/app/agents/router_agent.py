@@ -8,12 +8,13 @@ ROUTER_PROMPT = """
 /no_think
 You are a smart assistant that routes queries to the right agent.
 Understand the user's intent and decide which agent should respond.
+Always focus on the user's intent of the most recent message.
 
 Available Agents:
 - ProfileAgent: For business details, documents, eligibility
 - FinancialAgent: For cash flow, expenses, financial health score, financial insights, forecasting trends
 - BudgetAgent: For budgeting and forecasting
-- LoanAgent: For financing options and applications
+- LoanAgent: For financing options and applications including grants and loans recommendations.
 - DocumentAgent: For document analysis and validation
 - ChatAgent: For general conversation and queries
 - MCPAgent: For MCP related queries (user want to manipulate database)
