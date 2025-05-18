@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 # Get the project root directory (2 levels up from current file)
 project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-CHART_PATH = os.path.join(project_root, 'workspace', 'tools', 'code_interpreter', 'chart.png')
+CHART_PATH = os.path.join(project_root, 'backend','workspace', 'tools', 'code_interpreter', 'chart.png')
 
 INSIGHT_PROMPT = f"""
 /no_think

@@ -21,6 +21,7 @@ interface Message {
   liked?: boolean;
   disliked?: boolean;
   isChart?: boolean;
+  imageData?: string;
 }
 
 const pulseAnimation = keyframes`
@@ -193,36 +194,6 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData, input }) 
 
     setMessages(prev => [...prev, newMessage]);
 
-    // Check if the message is about charts
-    const isChartRequest = inputValue.toLowerCase().includes('generate') && inputValue.toLowerCase().includes('chart');
-
-    // If it's a chart request, wait for 5 seconds before showing the response
-    if (isChartRequest) {
-      setIsLoading(true);
-      // Add an empty assistant message that will be updated after delay
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: '',
-        isChart: false
-      }]);
-      
-      await new Promise(resolve => setTimeout(resolve, 5000)); // 5 second delay
-      
-      // Update the message with content and chart after delay
-      setMessages(prev => {
-        const newMessages = [...prev];
-        const lastMessage = newMessages[newMessages.length - 1];
-        if (lastMessage.role === 'assistant') {
-          lastMessage.content = 'The line chart of Cash Inflow vs Outflow from January to May 2025 has been generated successfully.';
-          lastMessage.isChart = true;
-        }
-        return newMessages;
-      });
-      
-      setIsLoading(false);
-      return;
-    }
-
     // Add an empty assistant message that will be updated with streaming content
     setMessages(prev => [...prev, {
       role: 'assistant',
@@ -242,15 +213,34 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData, input }) 
       await chatApi.sendStreamingMessage(
         messageData,
         (chunk: string) => {
-          accumulatedContent += chunk;
-          setMessages(prev => {
-            const newMessages = [...prev];
-            const lastMessage = newMessages[newMessages.length - 1];
-            if (lastMessage.role === 'assistant') {
-              lastMessage.content = accumulatedContent;
-            }
-            return newMessages;
-          });
+          try {
+            const data = JSON.parse(chunk);
+            accumulatedContent = data.content || '';
+            
+            setMessages(prev => {
+              const newMessages = [...prev];
+              const lastMessage = newMessages[newMessages.length - 1];
+              if (lastMessage.role === 'assistant') {
+                lastMessage.content = accumulatedContent;
+                if (data.image_data) {
+                  lastMessage.isChart = true;
+                  lastMessage.imageData = data.image_data;
+                }
+              }
+              return newMessages;
+            });
+          } catch (e) {
+            // If chunk is not JSON, treat it as plain text
+            accumulatedContent += chunk;
+            setMessages(prev => {
+              const newMessages = [...prev];
+              const lastMessage = newMessages[newMessages.length - 1];
+              if (lastMessage.role === 'assistant') {
+                lastMessage.content = accumulatedContent;
+              }
+              return newMessages;
+            });
+          }
         },
         (error: Error) => {
           console.error('Error in streaming:', error);
@@ -442,6 +432,8 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData, input }) 
   const renderMessage = (message: Message, index: number) => {
     let filePreview = null;
     let textContent = '';
+    let imageData = null;
+    
     if (Array.isArray(message.content)) {
       textContent = message.content.map(item => item.text || '').join(' ');
       const fileObj = message.content.find(item => item.file);
@@ -550,9 +542,9 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData, input }) 
                     {typeof message.content === 'string' ? message.content : ''}
                   </Typography>
                   <img 
-                    src="/chart.png" 
+                    src={message.imageData ? `data:image/png;base64,${message.imageData}` : '/chart.png'} 
                     alt="Chart" 
-                    onClick={() => handleImageClick('/chart.png')}
+                    onClick={() => handleImageClick(message.imageData ? `data:image/png;base64,${message.imageData}` : '/chart.png')}
                     style={{ 
                       maxWidth: '100%', 
                       height: 'auto',

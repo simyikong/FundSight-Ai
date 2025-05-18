@@ -14,6 +14,8 @@ from ...agents.mcp_agent import MCPAgent
 import logging
 import json
 import asyncio
+import os
+import base64
 
 # Configure logging
 logging.basicConfig(
@@ -21,6 +23,9 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# Get the project root directory
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..', '..', '..'))
 
 router = APIRouter()
 chat_agent = ChatAgent()
@@ -85,7 +90,34 @@ async def stream_tool_response(messages, agent):
     except Exception as e:
         logger.error(f"Error in streaming response: {str(e)}", exc_info=True)
         yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+async def stream_image_response(messages, agent):
+    try:
+        # Get the response from agent
+        agent.handle(messages=messages)
         
+        # Use the fixed path for the chart image
+        image_path = os.path.join(PROJECT_ROOT, "backend", "workspace", "tools", "code_interpreter", "chart.png")
+        
+        # Read the image file
+        with open(image_path, 'rb') as f:
+            image_data = f.read()
+            
+        # Convert to base64
+        base64_image = base64.b64encode(image_data).decode('utf-8')
+        
+        # Send the image data to frontend
+        response_data = {
+            'content': 'The chart has been generated successfully.',
+            'image_data': base64_image
+        }
+        
+        yield f"data: {json.dumps(response_data)}\n\n"
+        await asyncio.sleep(0.01)
+    except Exception as e:
+        logger.error(f"Error in streaming image response: {str(e)}", exc_info=True)
+        yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
 async def stream_json_response(messages, agent):
     try:
         buffer = ""
@@ -158,6 +190,8 @@ async def chat_stream(request: ChatRequest):
 
         if agent_name == 'LoanAgent':
             response_stream = stream_json_response(messages, agent)
+        elif agent_name == 'InsightAgent':
+            response_stream = stream_image_response(messages, agent)
         else:
             response_stream = stream_response(messages, agent)
 
@@ -170,6 +204,8 @@ async def chat_stream(request: ChatRequest):
             switch_tab = 'Document'
         elif agent_name == 'ProfileAgent':
             switch_tab = 'Profile'
+        elif agent_name == 'InsightAgent':
+            switch_tab = 'Insight'
 
         # Set up headers
         headers = {
