@@ -3,6 +3,8 @@ import { Box } from '@mui/material';
 import { LoanRecommendation } from '../../components/types';
 import RecommendationForm from './RecommendationForm';
 import FundingComparisonTable from './FundingComparisonTable';
+import ThinkingProcess from './ThinkingProcess';
+import FundingCardSkeleton from './FundingCardSkeleton';
 
 interface LoanRecommendationSectionProps {
   loanPurpose: string;
@@ -13,6 +15,7 @@ interface LoanRecommendationSectionProps {
   onAdditionalContextChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isEnabled: boolean;
   isLoading?: boolean;
+  isThinking?: boolean;
   recommendations: LoanRecommendation[];
   onGenerateRecommendations: () => void;
 }
@@ -26,6 +29,7 @@ const LoanRecommendationSection: React.FC<LoanRecommendationSectionProps> = ({
   onAdditionalContextChange,
   isEnabled,
   isLoading = false,
+  isThinking = false,
   recommendations,
   onGenerateRecommendations
 }) => {
@@ -40,10 +44,16 @@ const LoanRecommendationSection: React.FC<LoanRecommendationSectionProps> = ({
         onAdditionalContextChange={onAdditionalContextChange}
         onGenerateRecommendations={onGenerateRecommendations}
         isEnabled={isEnabled}
-        isLoading={isLoading}
+        isLoading={isLoading || isThinking}
       />
 
-      {recommendations.length > 0 && (
+      <ThinkingProcess isVisible={isThinking} />
+      
+      {isThinking && !recommendations.length && (
+        <FundingCardSkeleton count={3} />
+      )}
+
+      {recommendations.length > 0 && !isThinking && (
         <FundingComparisonTable recommendations={recommendations} />
       )}
     </Box>

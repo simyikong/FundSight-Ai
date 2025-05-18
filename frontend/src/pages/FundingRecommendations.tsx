@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import {
   Typography,
@@ -47,12 +46,13 @@ interface RecommendationHistory {
 
 const FundingRecommendations: React.FC = () => {
   // Loan recommendation state
-  const [loanPurpose, setLoanPurpose] = useState('');  // Default value for demo
-  const [loanAmount, setLoanAmount] = useState('');  // Default value for demo
-  const [additionalContext, setAdditionalContext] = useState('');  // Default context
+  const [loanPurpose, setLoanPurpose] = useState('');
+  const [loanAmount, setLoanAmount] = useState('');
+  const [additionalContext, setAdditionalContext] = useState('');
   const [recommendations, setRecommendations] = useState<LoanRecommendation[]>([]);
-  const [isRecommendationEnabled, setIsRecommendationEnabled] = useState(false); // Enable by default for demo
+  const [isRecommendationEnabled, setIsRecommendationEnabled] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isThinking, setIsThinking] = useState(false);
   
   // History state
   const [historyOpen, setHistoryOpen] = useState(false);
@@ -155,6 +155,7 @@ const FundingRecommendations: React.FC = () => {
     }
   };
 
+  // Fetch recommendations with simulated thinking process
   const fetchRecommendations = async () => {
     if (!companyId) {
       setError('Company profile not found');
@@ -163,13 +164,25 @@ const FundingRecommendations: React.FC = () => {
 
     // Always use the current state values
     const currentLoanPurpose = loanPurpose || 'Working Capital';
-    const currentLoanAmount = loanAmount || '100000';
+    const currentLoanAmount = loanAmount || '50000';
 
+    // Start the thinking process
+    setIsThinking(true);
     setIsGenerating(true);
     setError(null);
+
+    // Clear previous recommendations to show the thinking process
+    if (recommendations.length > 0) {
+      setRecommendations([]);
+    }
     
     try {
       console.log(`Fetching recommendations with purpose: ${currentLoanPurpose}, amount: ${currentLoanAmount}`);
+      
+      // Simulate thinking for demo purposes - total time about 9 seconds
+      const thinkingTime = 9000;
+      
+      // Make the actual API call
       const response = await axios.post(`${API_BASE_URL}/funding/recommendations`, {
         company_id: companyId,
         funding_purpose: currentLoanPurpose,
@@ -177,16 +190,27 @@ const FundingRecommendations: React.FC = () => {
         additional_context: additionalContext || undefined
       });
       
-      if (response.data && response.data.recommendations) {
-        console.log(`Received ${response.data.recommendations.length} recommendations`);
-        setRecommendations(response.data.recommendations);
-      } else {
-        setError('Received an invalid response from the server');
-      }
+      // Continue showing thinking process even after API returns
+      // This ensures we show all stages of the thinking visualization
+      setTimeout(() => {
+        if (response.data && response.data.recommendations) {
+          console.log(`Received ${response.data.recommendations.length} recommendations`);
+          
+          // Finally set recommendations and end thinking
+          setRecommendations(response.data.recommendations);
+          setIsThinking(false);
+          setIsGenerating(false);
+        } else {
+          setError('Received an invalid response from the server');
+          setIsThinking(false);
+          setIsGenerating(false);
+        }
+      }, thinkingTime);
+      
     } catch (err: any) {
       console.error('Error fetching recommendations:', err);
       setError(err.response?.data?.detail || 'Failed to generate recommendations');
-    } finally {
+      setIsThinking(false);
       setIsGenerating(false);
     }
   };
@@ -306,6 +330,7 @@ const FundingRecommendations: React.FC = () => {
             onAdditionalContextChange={(e: React.ChangeEvent<HTMLInputElement>) => setAdditionalContext(e.target.value)}
             isEnabled={isRecommendationEnabled}
             isLoading={isGenerating}
+            isThinking={isThinking}
             recommendations={recommendations}
             onGenerateRecommendations={fetchRecommendations}
           />
