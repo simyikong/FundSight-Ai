@@ -17,10 +17,15 @@ import AdminPage from './pages/AdminPage';
 function App() {
   const [chatbotOpen, setChatbotOpen] = useState(false);
   const [drawerWidth, setDrawerWidth] = useState(350);
+  const [chatbotInput, setChatbotInput] = useState('');
 
   // Event handlers
   const handleChatbotOpen = () => setChatbotOpen(true);
   const handleChatbotClose = () => setChatbotOpen(false);
+  const handleLoanData = (data: { funding_purpose?: string; requested_amount?: string }) => {
+    // Handle loan data if needed
+    console.log('Loan data received:', data);
+  };
 
   // Handle drawer resize functionality
   const handleDrawerMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -40,11 +45,15 @@ function App() {
 
   // Listen for custom event to open chatbot
   useEffect(() => {
-    const handler = () => {
+    const handler = (event: CustomEvent) => {
+      console.log('Chatbot event triggered');
       setChatbotOpen(true);
+      const inputText = "Analyze the financial health score of 69.17% and provide suggestions for improvement.";
+      console.log('Setting chatbot input to:', inputText);
+      setChatbotInput(inputText);
     };
-    window.addEventListener('open-ai-chatbot', handler);
-    return () => window.removeEventListener('open-ai-chatbot', handler);
+    window.addEventListener('open-ai-chatbot', handler as EventListener);
+    return () => window.removeEventListener('open-ai-chatbot', handler as EventListener);
   }, []);
 
   return (
@@ -57,6 +66,8 @@ function App() {
           handleChatbotOpen={handleChatbotOpen}
           handleChatbotClose={handleChatbotClose}
           handleDrawerMouseDown={handleDrawerMouseDown}
+          chatbotInput={chatbotInput}
+          onLoanData={handleLoanData}
         >
           <Routes>
             <Route path="/" element={<Home chatbotOpen={chatbotOpen} />} />

@@ -1,19 +1,28 @@
 import React from 'react';
 import { Drawer } from '@mui/material';
-import Chatbot from '../Chatbot/Chatbot';
+import { Chatbot } from '../Chatbot/Chatbot';
 
 interface ChatDrawerProps {
   open: boolean;
   width: number;
   onClose: () => void;
   onMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void;
+  input?: string;
+  onLoanData?: (data: { funding_purpose?: string; requested_amount?: string }) => void;
 }
 
 /**
  * ChatDrawer component for the AI assistant chat interface.
  * Includes a resizable drawer with the Chatbot component.
  */
-const ChatDrawer: React.FC<ChatDrawerProps> = ({ open, width, onClose, onMouseDown }) => {
+const ChatDrawer: React.FC<ChatDrawerProps> = ({ 
+  open, 
+  width, 
+  onClose, 
+  onMouseDown,
+  input,
+  onLoanData 
+}) => {
   return (
     <Drawer
       anchor="right"
@@ -43,7 +52,11 @@ const ChatDrawer: React.FC<ChatDrawerProps> = ({ open, width, onClose, onMouseDo
         }}
         onMouseDown={onMouseDown}
       />
-      <Chatbot onClose={onClose} />
+      <Chatbot 
+        onClose={onClose} 
+        input={input}
+        onLoanData={onLoanData}
+      />
     </Drawer>
   );
 };

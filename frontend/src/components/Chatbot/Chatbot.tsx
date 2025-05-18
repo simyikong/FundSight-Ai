@@ -37,7 +37,7 @@ interface ChatbotProps {
 
 export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData, input }) => {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [inputValue, setInputValue] = useState('');
+  const [inputValue, setInputValue] = useState(input || '');
   const [isLoading, setIsLoading] = useState(false);
   const [file, setFile] = useState<string | null>(null);
   const [isListening, setIsListening] = useState(false);
@@ -51,14 +51,85 @@ export const Chatbot: React.FC<ChatbotProps> = ({ onClose, onLoanData, input }) 
     localStorage.setItem('chatMessages', JSON.stringify(messages));
   }, [messages]);
 
-  // Effect for Ask AI button action (sets input value when input prop changes)
-  function useAskAIPromptEffect(input: string | undefined) {
-    useEffect(() => {
-      setInputValue("Analyze the financial health score of 69.17% and provide suggestions for improvement.");
-    }, [input]);
-  }
-  useAskAIPromptEffect(input);
-  
+  // Effect for setting input value when input prop changes
+  useEffect(() => {
+    console.log('Chatbot input prop changed:', input);
+    if (input) {
+      console.log('Setting input value to:', input);
+      setInputValue(input);
+      // Automatically send the message if input is provided
+      const sendMessage = async () => {
+        if (!input.trim()) return;
+        
+        setIsLoading(true);
+        const newMessage: Message = {
+          role: 'user',
+          content: input
+        };
+        setMessages(prev => [...prev, newMessage]);
+        
+        // Add an empty assistant message that will be updated with streaming content
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: '',
+          isChart: false
+        }]);
+
+        try {
+          const messageData = {
+            query: input,
+            message_history: messages,
+          };
+
+          let accumulatedContent = '';
+
+          await chatApi.sendStreamingMessage(
+            messageData,
+            (chunk: string) => {
+              accumulatedContent += chunk;
+              setMessages(prev => {
+                const newMessages = [...prev];
+                const lastMessage = newMessages[newMessages.length - 1];
+                if (lastMessage.role === 'assistant') {
+                  lastMessage.content = accumulatedContent;
+                }
+                return newMessages;
+              });
+            },
+            (error: Error) => {
+              console.error('Error in streaming:', error);
+              setMessages(prev => {
+                const newMessages = [...prev];
+                const lastMessage = newMessages[newMessages.length - 1];
+                if (lastMessage.role === 'assistant') {
+                  lastMessage.content = 'Sorry, there was an error processing your message.';
+                }
+                return newMessages;
+              });
+            },
+            (tab: string, loanData?: { funding_purpose?: string; requested_amount?: string }) => {
+              handleTabSwitch(tab, loanData);
+            },
+            onLoanData
+          );
+        } catch (error) {
+          console.error('Error sending message:', error);
+          setMessages(prev => {
+            const newMessages = [...prev];
+            const lastMessage = newMessages[newMessages.length - 1];
+            if (lastMessage.role === 'assistant') {
+              lastMessage.content = 'Sorry, there was an error processing your message.';
+            }
+            return newMessages;
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      sendMessage();
+    }
+  }, [input]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

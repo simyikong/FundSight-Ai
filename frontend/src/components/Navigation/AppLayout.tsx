@@ -11,6 +11,8 @@ interface AppLayoutProps {
   handleChatbotOpen: () => void;
   handleChatbotClose: () => void;
   handleDrawerMouseDown: (e: React.MouseEvent<HTMLDivElement>) => void;
+  chatbotInput?: string;
+  onLoanData?: (data: { funding_purpose?: string; requested_amount?: string }) => void;
 }
 
 export const AppLayout: React.FC<AppLayoutProps> = ({
@@ -19,7 +21,9 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   drawerWidth,
   handleChatbotOpen,
   handleChatbotClose,
-  handleDrawerMouseDown
+  handleDrawerMouseDown,
+  chatbotInput,
+  onLoanData
 }) => {
   return (
     <Box sx={{ display: 'flex', minHeight: '100vh', flexDirection: 'column' }}>
@@ -60,6 +64,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         onClose={handleChatbotClose}
         width={drawerWidth}
         onMouseDown={handleDrawerMouseDown}
+        input={chatbotInput}
+        onLoanData={onLoanData}
       />
     </Box>
   );
